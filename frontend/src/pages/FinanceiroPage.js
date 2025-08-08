@@ -1,0 +1,287 @@
+// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM AS 3 ABAS COMPLETAS
+
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import {
+  Typography, Container, Paper, Box, Button, Tabs, Tab,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
+  IconButton, Select, MenuItem, FormControl, InputLabel, CircularProgress
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+const API_CATEGORIAS_URL = 'http://127.0.0.1:8001/api/categorias/';
+const API_CENTROS_DE_CUSTO_URL = 'http://127.0.0.1:8001/api/centros-de-custo/';
+const API_LANCAMENTOS_URL = 'http://127.0.0.1:8001/api/lancamentos/';
+
+function FinanceiroPage() {
+  const [abaAtual, setAbaAtual] = useState(0);
+  const getToken = () => localStorage.getItem('accessToken');
+
+  // Estados para Categorias
+  const [categorias, setCategorias] = useState([]);
+  const [carregandoCategorias, setCarregandoCategorias] = useState(true);
+  const [dialogCategoriaAberto, setDialogCategoriaAberto] = useState(false);
+  const [modoEdicaoCategoria, setModoEdicaoCategoria] = useState(false);
+  const [categoriaForm, setCategoriaForm] = useState({ nome: '', descricao: '', tipo: 'Despesa' });
+  const [idCategoriaEdit, setIdCategoriaEdit] = useState(null);
+  
+  // Estados para Centros de Custo
+  const [centrosDeCusto, setCentrosDeCusto] = useState([]);
+  const [carregandoCentros, setCarregandoCentros] = useState(true);
+  const [dialogCentroAberto, setDialogCentroAberto] = useState(false);
+  const [modoEdicaoCentro, setModoEdicaoCentro] = useState(false);
+  const [centroForm, setCentroForm] = useState({ nome: '', descricao: '' });
+  const [idCentroEdit, setIdCentroEdit] = useState(null);
+
+  // Estados para Lançamentos
+  const [lancamentos, setLancamentos] = useState([]);
+  const [carregandoLancamentos, setCarregandoLancamentos] = useState(true);
+  const [dialogLancamentoAberto, setDialogLancamentoAberto] = useState(false);
+  const [modoEdicaoLancamento, setModoEdicaoLancamento] = useState(false);
+  const [lancamentoForm, setLancamentoForm] = useState({
+    descricao: '', valor: '', tipo: 'Despesa', status_pagamento: 'Pendente',
+    data_lancamento: '', data_competencia: '', categoria: '', centro_de_custo: ''
+  });
+  const [idLancamentoEdit, setIdLancamentoEdit] = useState(null);
+
+  const handleTabChange = (event, newValue) => { setAbaAtual(newValue); };
+
+  // --- LÓGICA PARA BUSCAR DADOS ---
+  const buscarCategorias = useCallback(async () => {
+    setCarregandoCategorias(true);
+    try {
+      const token = getToken(); if (!token) return;
+      const resposta = await axios.get(API_CATEGORIAS_URL, { headers: { 'Authorization': `Bearer ${token}` } });
+      setCategorias(resposta.data);
+    } catch (erro) { console.error("Erro ao buscar categorias:", erro); }
+    finally { setCarregandoCategorias(false); }
+  }, []);
+
+  const buscarCentrosDeCusto = useCallback(async () => {
+    setCarregandoCentros(true);
+    try {
+      const token = getToken(); if (!token) return;
+      const resposta = await axios.get(API_CENTROS_DE_CUSTO_URL, { headers: { 'Authorization': `Bearer ${token}` } });
+      setCentrosDeCusto(resposta.data);
+    } catch (erro) { console.error("Erro ao buscar centros de custo:", erro); }
+    finally { setCarregandoCentros(false); }
+  }, []);
+  
+  const buscarLancamentos = useCallback(async () => {
+    setCarregandoLancamentos(true);
+    try {
+      const token = getToken(); if (!token) return;
+      const resposta = await axios.get(API_LANCAMENTOS_URL, { headers: { 'Authorization': `Bearer ${token}` } });
+      setLancamentos(resposta.data);
+    } catch (erro) { console.error("Erro ao buscar lançamentos:", erro); }
+    finally { setCarregandoLancamentos(false); }
+  }, []);
+
+  useEffect(() => {
+    if (abaAtual === 0) { buscarLancamentos(); }
+    if (abaAtual === 1) { buscarCategorias(); }
+    if (abaAtual === 2) { buscarCentrosDeCusto(); }
+  }, [abaAtual, buscarLancamentos, buscarCategorias, buscarCentrosDeCusto]);
+
+  // --- LÓGICA PARA CATEGORIAS ---
+  const handleAbrirDialogCategoria = (categoria = null) => {
+    if (categoria) {
+      setModoEdicaoCategoria(true); setIdCategoriaEdit(categoria.id);
+      setCategoriaForm({ nome: categoria.nome, descricao: categoria.descricao, tipo: categoria.tipo });
+    } else {
+      setModoEdicaoCategoria(false);
+      setCategoriaForm({ nome: '', descricao: '', tipo: 'Despesa' });
+    }
+    setDialogCategoriaAberto(true);
+  };
+  const handleFecharDialogCategoria = () => setDialogCategoriaAberto(false);
+  const handleInputChangeCategoria = (e) => {
+    const { name, value } = e.target;
+    setCategoriaForm(prevState => ({ ...prevState, [name]: value }));
+  };
+  const handleSalvarCategoria = async () => {
+    try {
+      const token = getToken(); if (!token) return;
+      if (modoEdicaoCategoria) {
+        await axios.put(`${API_CATEGORIAS_URL}${idCategoriaEdit}/`, categoriaForm, { headers: { 'Authorization': `Bearer ${token}` } });
+      } else {
+        await axios.post(API_CATEGORIAS_URL, categoriaForm, { headers: { 'Authorization': `Bearer ${token}` } });
+      }
+      handleFecharDialogCategoria();
+      buscarCategorias();
+    } catch (erro) { alert("Erro ao salvar categoria."); }
+  };
+
+  // --- LÓGICA PARA CENTROS DE CUSTO ---
+  const handleAbrirDialogCentro = (centro = null) => {
+    if (centro) {
+      setModoEdicaoCentro(true); setIdCentroEdit(centro.id);
+      setCentroForm({ nome: centro.nome, descricao: centro.descricao });
+    } else {
+      setModoEdicaoCentro(false);
+      setCentroForm({ nome: '', descricao: '' });
+    }
+    setDialogCentroAberto(true);
+  };
+  const handleFecharDialogCentro = () => setDialogCentroAberto(false);
+  const handleInputChangeCentro = (e) => {
+    const { name, value } = e.target;
+    setCentroForm(prevState => ({ ...prevState, [name]: value }));
+  };
+  const handleSalvarCentro = async () => {
+    try {
+      const token = getToken(); if (!token) return;
+      if (modoEdicaoCentro) {
+        await axios.put(`${API_CENTROS_DE_CUSTO_URL}${idCentroEdit}/`, centroForm, { headers: { 'Authorization': `Bearer ${token}` } });
+      } else {
+        await axios.post(API_CENTROS_DE_CUSTO_URL, centroForm, { headers: { 'Authorization': `Bearer ${token}` } });
+      }
+      handleFecharDialogCentro();
+      buscarCentrosDeCusto();
+    } catch (erro) { alert("Erro ao salvar centro de custo."); }
+  };
+  
+  // --- LÓGICA PARA LANÇAMENTOS ---
+  const handleAbrirDialogLancamento = async (lancamento = null) => {
+    await buscarCategorias(); await buscarCentrosDeCusto();
+    if (lancamento) {
+      setModoEdicaoLancamento(true); setIdLancamentoEdit(lancamento.id);
+      setLancamentoForm({
+        descricao: lancamento.descricao, valor: lancamento.valor, tipo: lancamento.tipo,
+        status_pagamento: lancamento.status_pagamento, data_lancamento: lancamento.data_lancamento,
+        data_competencia: lancamento.data_competencia, categoria: lancamento.categoria || '',
+        centro_de_custo: lancamento.centro_de_custo || ''
+      });
+    } else {
+      setModoEdicaoLancamento(false);
+      setLancamentoForm({
+        descricao: '', valor: '', tipo: 'Despesa', status_pagamento: 'Pendente',
+        data_lancamento: '', data_competencia: '', categoria: '', centro_de_custo: ''
+      });
+    }
+    setDialogLancamentoAberto(true);
+  };
+  const handleFecharDialogLancamento = () => setDialogLancamentoAberto(false);
+  const handleInputChangeLancamento = (e) => {
+    const { name, value } = e.target;
+    setLancamentoForm(prevState => ({ ...prevState, [name]: value }));
+  };
+  const handleSalvarLancamento = async () => {
+    try {
+      const token = getToken(); if (!token) return;
+      const payload = { ...lancamentoForm };
+      if (!payload.categoria) delete payload.categoria;
+      if (!payload.centro_de_custo) delete payload.centro_de_custo;
+      if (modoEdicaoLancamento) {
+        await axios.put(`${API_LANCAMENTOS_URL}${idLancamentoEdit}/`, payload, { headers: { 'Authorization': `Bearer ${token}` } });
+      } else {
+        await axios.post(API_LANCAMENTOS_URL, payload, { headers: { 'Authorization': `Bearer ${token}` } });
+      }
+      handleFecharDialogLancamento();
+      buscarLancamentos();
+    } catch (erro) { alert("Erro ao salvar lançamento."); }
+  };
+
+  return (
+    <Container maxWidth="xl">
+      <Typography variant="h4" sx={{ mb: 4 }}>Controle Financeiro</Typography>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs value={abaAtual} onChange={handleTabChange}><Tab label="Lançamentos" /><Tab label="Categorias" /><Tab label="Centros de Custo" /></Tabs>
+      </Box>
+
+      {abaAtual === 0 && ( /* ABA LANÇAMENTOS */
+        <Paper elevation={3} sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Lançamentos Financeiros</Typography>
+            <Button variant="contained" onClick={() => handleAbrirDialogLancamento()}>Novo Lançamento</Button>
+          </Box>
+          <TableContainer><Table size="small"><TableHead><TableRow><TableCell>Descrição</TableCell><TableCell>Valor</TableCell><TableCell>Tipo</TableCell><TableCell>Categoria</TableCell><TableCell>Centro de Custo</TableCell><TableCell>Data Lanç.</TableCell><TableCell>Status</TableCell><TableCell>Ações</TableCell></TableRow></TableHead>
+            <TableBody>
+              {carregandoLancamentos ? (<TableRow><TableCell colSpan={8} align="center"><CircularProgress /></TableCell></TableRow>) : (
+                lancamentos.map(lanc => (
+                  <TableRow key={lanc.id}>
+                    <TableCell>{lanc.descricao}</TableCell><TableCell>R$ {parseFloat(lanc.valor).toFixed(2)}</TableCell><TableCell>{lanc.tipo}</TableCell><TableCell>{lanc.categoria_nome}</TableCell><TableCell>{lanc.centro_de_custo_nome}</TableCell><TableCell>{new Date(lanc.data_lancamento).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</TableCell><TableCell>{lanc.status_pagamento}</TableCell>
+                    <TableCell><IconButton size="small" color="primary" onClick={() => handleAbrirDialogLancamento(lanc)}><EditIcon /></IconButton></TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table></TableContainer>
+        </Paper>
+      )}
+
+      {abaAtual === 1 && ( /* ABA CATEGORIAS */
+        <Paper elevation={3} sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Gerir Categorias</Typography>
+            <Button variant="contained" onClick={() => handleAbrirDialogCategoria()}>Nova Categoria</Button>
+          </Box>
+          <TableContainer><Table><TableHead><TableRow><TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell><TableCell sx={{ fontWeight: 'bold' }}>Tipo</TableCell><TableCell sx={{ fontWeight: 'bold' }}>Descrição</TableCell><TableCell sx={{ fontWeight: 'bold' }}>Ações</TableCell></TableRow></TableHead>
+            <TableBody>
+              {carregandoCategorias ? (<TableRow><TableCell colSpan={4} align="center"><CircularProgress /></TableCell></TableRow>) : (
+                categorias.map(cat => (
+                  <TableRow key={cat.id}><TableCell>{cat.nome}</TableCell><TableCell>{cat.tipo}</TableCell><TableCell>{cat.descricao}</TableCell><TableCell><IconButton color="primary" onClick={() => handleAbrirDialogCategoria(cat)}><EditIcon /></IconButton></TableCell></TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table></TableContainer>
+        </Paper>
+      )}
+
+      {abaAtual === 2 && ( /* ABA CENTROS DE CUSTO */
+        <Paper elevation={3} sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Gerir Centros de Custo</Typography>
+            <Button variant="contained" onClick={() => handleAbrirDialogCentro()}>Novo Centro de Custo</Button>
+          </Box>
+          <TableContainer><Table><TableHead><TableRow><TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell><TableCell sx={{ fontWeight: 'bold' }}>Descrição</TableCell><TableCell sx={{ fontWeight: 'bold' }}>Ações</TableCell></TableRow></TableHead>
+            <TableBody>
+              {carregandoCentros ? (<TableRow><TableCell colSpan={3} align="center"><CircularProgress /></TableCell></TableRow>) : (
+                centrosDeCusto.map(cen => (
+                  <TableRow key={cen.id}><TableCell>{cen.nome}</TableCell><TableCell>{cen.descricao}</TableCell><TableCell><IconButton color="primary" onClick={() => handleAbrirDialogCentro(cen)}><EditIcon /></IconButton></TableCell></TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table></TableContainer>
+        </Paper>
+      )}
+
+      {/* DIALOGS */}
+      <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
+        <DialogTitle>{modoEdicaoLancamento ? 'Editar Lançamento' : 'Novo Lançamento'}</DialogTitle>
+        <DialogContent>
+          <TextField name="descricao" label="Descrição" value={lancamentoForm.descricao} fullWidth margin="dense" required onChange={handleInputChangeLancamento} />
+          <TextField name="valor" label="Valor (R$)" value={lancamentoForm.valor} type="number" fullWidth margin="dense" required onChange={handleInputChangeLancamento} />
+          <FormControl fullWidth margin="dense" required><InputLabel>Tipo</InputLabel><Select name="tipo" value={lancamentoForm.tipo} label="Tipo" onChange={handleInputChangeLancamento}><MenuItem value="Receita">Receita</MenuItem><MenuItem value="Despesa">Despesa</MenuItem></Select></FormControl>
+          <FormControl fullWidth margin="dense"><InputLabel>Categoria</InputLabel><Select name="categoria" value={lancamentoForm.categoria} label="Categoria" onChange={handleInputChangeLancamento}>{categorias.filter(c => c.tipo === lancamentoForm.tipo).map(cat => (<MenuItem key={cat.id} value={cat.id}>{cat.nome}</MenuItem>))}</Select></FormControl>
+          <FormControl fullWidth margin="dense"><InputLabel>Centro de Custo</InputLabel><Select name="centro_de_custo" value={lancamentoForm.centro_de_custo} label="Centro de Custo" onChange={handleInputChangeLancamento}>{centrosDeCusto.map(cen => (<MenuItem key={cen.id} value={cen.id}>{cen.nome}</MenuItem>))}</Select></FormControl>
+          <TextField name="data_lancamento" label="Data do Lançamento" value={lancamentoForm.data_lancamento} type="date" fullWidth margin="dense" required onChange={handleInputChangeLancamento} InputLabelProps={{ shrink: true }} />
+          <TextField name="data_competencia" label="Data de Competência" value={lancamentoForm.data_competencia} type="date" fullWidth margin="dense" required onChange={handleInputChangeLancamento} InputLabelProps={{ shrink: true }} />
+          <FormControl fullWidth margin="dense" required><InputLabel>Status</InputLabel><Select name="status_pagamento" value={lancamentoForm.status_pagamento} label="Status" onChange={handleInputChangeLancamento}><MenuItem value="Pendente">Pendente</MenuItem><MenuItem value="Pago">Pago</MenuItem><MenuItem value="Atrasado">Atrasado</MenuItem><MenuItem value="Cancelado">Cancelado</MenuItem></Select></FormControl>
+        </DialogContent>
+        <DialogActions><Button onClick={handleFecharDialogLancamento}>Cancelar</Button><Button onClick={handleSalvarLancamento} variant="contained">Salvar</Button></DialogActions>
+      </Dialog>
+      <Dialog open={dialogCategoriaAberto} onClose={handleFecharDialogCategoria}>
+        <DialogTitle>{modoEdicaoCategoria ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
+        <DialogContent>
+          <TextField name="nome" label="Nome da Categoria" value={categoriaForm.nome} fullWidth margin="dense" required onChange={handleInputChangeCategoria} />
+          <FormControl fullWidth margin="dense" required><InputLabel>Tipo</InputLabel><Select name="tipo" value={categoriaForm.tipo} label="Tipo" onChange={handleInputChangeCategoria}><MenuItem value="Receita">Receita</MenuItem><MenuItem value="Despesa">Despesa</MenuItem></Select></FormControl>
+          <TextField name="descricao" label="Descrição" value={categoriaForm.descricao} fullWidth margin="dense" multiline rows={3} onChange={handleInputChangeCategoria} />
+        </DialogContent>
+        <DialogActions><Button onClick={handleFecharDialogCategoria}>Cancelar</Button><Button onClick={handleSalvarCategoria} variant="contained">Salvar</Button></DialogActions>
+      </Dialog>
+      <Dialog open={dialogCentroAberto} onClose={handleFecharDialogCentro}>
+        <DialogTitle>{modoEdicaoCentro ? 'Editar Centro de Custo' : 'Novo Centro de Custo'}</DialogTitle>
+        <DialogContent>
+          <TextField name="nome" label="Nome do Centro de Custo" value={centroForm.nome} fullWidth margin="dense" required onChange={handleInputChangeCentro} />
+          <TextField name="descricao" label="Descrição" value={centroForm.descricao} fullWidth margin="dense" multiline rows={3} onChange={handleInputChangeCentro} />
+        </DialogContent>
+        <DialogActions><Button onClick={handleFecharDialogCentro}>Cancelar</Button><Button onClick={handleSalvarCentro} variant="contained">Salvar</Button></DialogActions>
+      </Dialog>
+    </Container>
+  );
+}
+
+export default FinanceiroPage;
