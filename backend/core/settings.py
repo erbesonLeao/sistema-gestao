@@ -103,4 +103,8 @@ REST_FRAMEWORK = { # ...
 }
 
 # Configuração do CORS (já existente)
-CORS_ALLOW_ALL_ORIGINS = True
+#CORS_ALLOW_ALL_ORIGINS = True
+# Lista de sites que têm permissão para falar com a nossa API
+CORS_ALLOWED_ORIGINS = [
+    "https://sistema-gestao-behx.onrender.com",
+]
