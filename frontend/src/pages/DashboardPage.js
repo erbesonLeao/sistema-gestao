@@ -11,7 +11,7 @@ import CakeIcon from '@mui/icons-material/Cake';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import EventIcon from '@mui/icons-material/Event';
 
-const API_DASHBOARD_URL = 'http://127.0.0.1:8001/api/dashboard/summary/';
+const API_DASHBOARD_URL = `${process.env.REACT_APP_API_URL || 'http://127.0.0.1:8001'}/api/dashboard/summary/`;
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 function DashboardPage() {
