@@ -1,9 +1,9 @@
 {
+  "version": 2,
   "builds": [
     {
       "src": "backend/core/wsgi.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.12" }
+      "use": "@vercel/python"
     },
     {
       "src": "frontend/package.json",
@@ -17,8 +17,11 @@
       "dest": "backend/core/wsgi.py"
     },
     {
+        "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "dest": "frontend/build/index.html"
     }
   ]
 }
