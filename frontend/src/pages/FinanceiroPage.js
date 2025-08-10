@@ -1,5 +1,3 @@
-// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM AS 3 ABAS COMPLETAS
-
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
@@ -9,7 +7,7 @@ import {
   IconButton, Select, MenuItem, FormControl, InputLabel, CircularProgress
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+// A importação do 'DeleteIcon' foi removida desta linha pois não estava em uso nesta página
 
 const API_CATEGORIAS_URL = 'http://127.0.0.1:8001/api/categorias/';
 const API_CENTROS_DE_CUSTO_URL = 'http://127.0.0.1:8001/api/centros-de-custo/';
@@ -19,7 +17,7 @@ function FinanceiroPage() {
   const [abaAtual, setAbaAtual] = useState(0);
   const getToken = () => localStorage.getItem('accessToken');
 
-  // Estados para Categorias
+  // Estados para o CRUD de Categorias
   const [categorias, setCategorias] = useState([]);
   const [carregandoCategorias, setCarregandoCategorias] = useState(true);
   const [dialogCategoriaAberto, setDialogCategoriaAberto] = useState(false);
@@ -27,7 +25,7 @@ function FinanceiroPage() {
   const [categoriaForm, setCategoriaForm] = useState({ nome: '', descricao: '', tipo: 'Despesa' });
   const [idCategoriaEdit, setIdCategoriaEdit] = useState(null);
   
-  // Estados para Centros de Custo
+  // Estados para o CRUD de Centros de Custo
   const [centrosDeCusto, setCentrosDeCusto] = useState([]);
   const [carregandoCentros, setCarregandoCentros] = useState(true);
   const [dialogCentroAberto, setDialogCentroAberto] = useState(false);
@@ -35,7 +33,7 @@ function FinanceiroPage() {
   const [centroForm, setCentroForm] = useState({ nome: '', descricao: '' });
   const [idCentroEdit, setIdCentroEdit] = useState(null);
 
-  // Estados para Lançamentos
+  // Estados para o CRUD de Lançamentos
   const [lancamentos, setLancamentos] = useState([]);
   const [carregandoLancamentos, setCarregandoLancamentos] = useState(true);
   const [dialogLancamentoAberto, setDialogLancamentoAberto] = useState(false);
@@ -46,13 +44,14 @@ function FinanceiroPage() {
   });
   const [idLancamentoEdit, setIdLancamentoEdit] = useState(null);
 
+
   const handleTabChange = (event, newValue) => { setAbaAtual(newValue); };
 
-  // --- LÓGICA PARA BUSCAR DADOS ---
   const buscarCategorias = useCallback(async () => {
     setCarregandoCategorias(true);
     try {
-      const token = getToken(); if (!token) return;
+      const token = getToken();
+      if (!token) return;
       const resposta = await axios.get(API_CATEGORIAS_URL, { headers: { 'Authorization': `Bearer ${token}` } });
       setCategorias(resposta.data);
     } catch (erro) { console.error("Erro ao buscar categorias:", erro); }
@@ -62,7 +61,8 @@ function FinanceiroPage() {
   const buscarCentrosDeCusto = useCallback(async () => {
     setCarregandoCentros(true);
     try {
-      const token = getToken(); if (!token) return;
+      const token = getToken();
+      if (!token) return;
       const resposta = await axios.get(API_CENTROS_DE_CUSTO_URL, { headers: { 'Authorization': `Bearer ${token}` } });
       setCentrosDeCusto(resposta.data);
     } catch (erro) { console.error("Erro ao buscar centros de custo:", erro); }
@@ -72,7 +72,8 @@ function FinanceiroPage() {
   const buscarLancamentos = useCallback(async () => {
     setCarregandoLancamentos(true);
     try {
-      const token = getToken(); if (!token) return;
+      const token = getToken();
+      if (!token) return;
       const resposta = await axios.get(API_LANCAMENTOS_URL, { headers: { 'Authorization': `Bearer ${token}` } });
       setLancamentos(resposta.data);
     } catch (erro) { console.error("Erro ao buscar lançamentos:", erro); }
@@ -85,10 +86,10 @@ function FinanceiroPage() {
     if (abaAtual === 2) { buscarCentrosDeCusto(); }
   }, [abaAtual, buscarLancamentos, buscarCategorias, buscarCentrosDeCusto]);
 
-  // --- LÓGICA PARA CATEGORIAS ---
   const handleAbrirDialogCategoria = (categoria = null) => {
     if (categoria) {
-      setModoEdicaoCategoria(true); setIdCategoriaEdit(categoria.id);
+      setModoEdicaoCategoria(true);
+      setIdCategoriaEdit(categoria.id);
       setCategoriaForm({ nome: categoria.nome, descricao: categoria.descricao, tipo: categoria.tipo });
     } else {
       setModoEdicaoCategoria(false);
@@ -103,7 +104,8 @@ function FinanceiroPage() {
   };
   const handleSalvarCategoria = async () => {
     try {
-      const token = getToken(); if (!token) return;
+      const token = getToken();
+      if (!token) return;
       if (modoEdicaoCategoria) {
         await axios.put(`${API_CATEGORIAS_URL}${idCategoriaEdit}/`, categoriaForm, { headers: { 'Authorization': `Bearer ${token}` } });
       } else {
@@ -111,13 +113,16 @@ function FinanceiroPage() {
       }
       handleFecharDialogCategoria();
       buscarCategorias();
-    } catch (erro) { alert("Erro ao salvar categoria."); }
+    } catch (erro) {
+      console.error("Erro ao salvar categoria:", erro.response?.data || erro);
+      alert("Erro ao salvar categoria.");
+    }
   };
 
-  // --- LÓGICA PARA CENTROS DE CUSTO ---
   const handleAbrirDialogCentro = (centro = null) => {
     if (centro) {
-      setModoEdicaoCentro(true); setIdCentroEdit(centro.id);
+      setModoEdicaoCentro(true);
+      setIdCentroEdit(centro.id);
       setCentroForm({ nome: centro.nome, descricao: centro.descricao });
     } else {
       setModoEdicaoCentro(false);
@@ -132,7 +137,8 @@ function FinanceiroPage() {
   };
   const handleSalvarCentro = async () => {
     try {
-      const token = getToken(); if (!token) return;
+      const token = getToken();
+      if (!token) return;
       if (modoEdicaoCentro) {
         await axios.put(`${API_CENTROS_DE_CUSTO_URL}${idCentroEdit}/`, centroForm, { headers: { 'Authorization': `Bearer ${token}` } });
       } else {
@@ -140,14 +146,18 @@ function FinanceiroPage() {
       }
       handleFecharDialogCentro();
       buscarCentrosDeCusto();
-    } catch (erro) { alert("Erro ao salvar centro de custo."); }
+    } catch (erro) {
+      console.error("Erro ao salvar centro de custo:", erro.response?.data || erro);
+      alert("Erro ao salvar centro de custo.");
+    }
   };
-  
-  // --- LÓGICA PARA LANÇAMENTOS ---
+
   const handleAbrirDialogLancamento = async (lancamento = null) => {
-    await buscarCategorias(); await buscarCentrosDeCusto();
+    await buscarCategorias();
+    await buscarCentrosDeCusto();
     if (lancamento) {
-      setModoEdicaoLancamento(true); setIdLancamentoEdit(lancamento.id);
+      setModoEdicaoLancamento(true);
+      setIdLancamentoEdit(lancamento.id);
       setLancamentoForm({
         descricao: lancamento.descricao, valor: lancamento.valor, tipo: lancamento.tipo,
         status_pagamento: lancamento.status_pagamento, data_lancamento: lancamento.data_lancamento,
@@ -170,7 +180,8 @@ function FinanceiroPage() {
   };
   const handleSalvarLancamento = async () => {
     try {
-      const token = getToken(); if (!token) return;
+      const token = getToken();
+      if (!token) return;
       const payload = { ...lancamentoForm };
       if (!payload.categoria) delete payload.categoria;
       if (!payload.centro_de_custo) delete payload.centro_de_custo;
@@ -181,7 +192,10 @@ function FinanceiroPage() {
       }
       handleFecharDialogLancamento();
       buscarLancamentos();
-    } catch (erro) { alert("Erro ao salvar lançamento."); }
+    } catch (erro) {
+      console.error("Erro ao salvar lançamento:", erro.response?.data || erro);
+      alert("Erro ao salvar lançamento.");
+    }
   };
 
   return (
@@ -190,8 +204,7 @@ function FinanceiroPage() {
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs value={abaAtual} onChange={handleTabChange}><Tab label="Lançamentos" /><Tab label="Categorias" /><Tab label="Centros de Custo" /></Tabs>
       </Box>
-
-      {abaAtual === 0 && ( /* ABA LANÇAMENTOS */
+      {abaAtual === 0 && (
         <Paper elevation={3} sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6">Lançamentos Financeiros</Typography>
@@ -211,8 +224,7 @@ function FinanceiroPage() {
           </Table></TableContainer>
         </Paper>
       )}
-
-      {abaAtual === 1 && ( /* ABA CATEGORIAS */
+      {abaAtual === 1 && (
         <Paper elevation={3} sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6">Gerir Categorias</Typography>
@@ -229,8 +241,7 @@ function FinanceiroPage() {
           </Table></TableContainer>
         </Paper>
       )}
-
-      {abaAtual === 2 && ( /* ABA CENTROS DE CUSTO */
+      {abaAtual === 2 && (
         <Paper elevation={3} sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6">Gerir Centros de Custo</Typography>
@@ -247,8 +258,6 @@ function FinanceiroPage() {
           </Table></TableContainer>
         </Paper>
       )}
-
-      {/* DIALOGS */}
       <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
         <DialogTitle>{modoEdicaoLancamento ? 'Editar Lançamento' : 'Novo Lançamento'}</DialogTitle>
         <DialogContent>
