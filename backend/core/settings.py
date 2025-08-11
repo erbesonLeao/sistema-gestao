@@ -1,32 +1,20 @@
-# backend/core/settings.py - VERSÃO FINAL PARA DEPLOY
-
 from pathlib import Path
 import os
-import dj_database_url # Importamos a nova ferramenta
+import dj_database_url
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# Agora, a nossa chave secreta será lida de uma "variável de ambiente" segura no servidor
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-local-key-for-development')
+# No ambiente da Vercel, DEBUG é False. No seu computador, será True.
+DEBUG = os.environ.get('VERCEL_ENV') != 'production'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# O Render define a variável 'RENDER' automaticamente. Se estivermos no Render, DEBUG será False.
-DEBUG = 'RENDER' not in os.environ
+# AQUI: Adicionamos o URL da Vercel à lista de anfitriões permitidos
+ALLOWED_HOSTS = [
+    '127.0.0.1', 
+    '.vercel.app' # Permite que qualquer subdomínio da Vercel aceda
+]
 
-# Adicionamos o endereço do nosso futuro site no Render a esta lista
-ALLOWED_HOSTS = []
-
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,7 +35,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Adicionado para servir arquivos estáticos
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -58,13 +46,26 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
-TEMPLATES = [ # ... (sem alterações aqui) ...
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
 ]
+
+# A Vercel usa o arquivo wsgi.py que está dentro da pasta 'core'
 WSGI_APPLICATION = 'core.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-# Lógica para usar a base de dados do Render online, ou a local no seu computador
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -72,21 +73,19 @@ DATABASES = {
     )
 }
 
-# Password validation
-# ... (sem alterações aqui) ...
-AUTH_PASSWORD_VALIDATORS = [ # ...
+AUTH_PASSWORD_VALIDATORS = [
+    { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    { 'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
 
-# Internationalization
-# ... (sem alterações aqui) ...
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
-# ...
+USE_I18N = True
+USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_URL = 'static/'
-# Esta configuração é importante para o deploy no Render
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STORAGES = {
     "staticfiles": {
@@ -94,16 +93,13 @@ STORAGES = {
     },
 }
 
-# Default primary key field type
-# ... (sem alterações aqui) ...
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Configuração do REST Framework (já existente)
-REST_FRAMEWORK = { # ...
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
 }
 
-# Configuração do CORS (já existente)
-# Configuração de CORS mais robusta para o Render
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.onrender\.com$",
-]
+# Configuração de CORS que funciona bem com a Vercel
+CORS_ALLOW_ALL_ORIGINS = True
