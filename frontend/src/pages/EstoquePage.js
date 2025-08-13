@@ -11,7 +11,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const API_ESTOQUE_URL = `${process.env.REACT_APP_API_URL || 'http://127.0.0.1:8001'}/api/produtos/`;
+const API_ESTOQUE_URL = `http://erbeson.pythonanywhere.com/api/produtos/`;
 
 
 function EstoquePage() {

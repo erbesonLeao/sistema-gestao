@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Button, TextField, Container, Typography, Box, Alert } from '@mui/material';
 
 // AQUI ESTÁ A MUDANÇA
-const API_REGISTRO_URL = `${process.env.REACT_APP_API_URL || 'http://127.0.0.1:8001'}/api/registro/`;
+const API_REGISTRO_URL = `http://erbeson.pythonanywhere.com/api/registro/`;
 
 function RegistroPage() {
     const [username, setUsername] = useState('');

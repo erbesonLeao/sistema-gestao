@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Container, Typography, Box, TextField, Button, Alert } from '@mui/material';
 
 // AQUI ESTÁ A MUDANÇA
-const API_URL = `${process.env.REACT_APP_API_URL || 'http://127.0.0.1:8001'}/api/token/`;
+const API_URL = `http://erbeson.pythonanywhere.com/api/token/`;
 
 function LoginPage() {
   const [username, setUsername] = useState('');
