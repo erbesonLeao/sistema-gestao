@@ -6,13 +6,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
-# No ambiente da Vercel, DEBUG é False. No seu computador, será True.
-DEBUG = os.environ.get('VERCEL_ENV') != 'production'
+# No ambiente do Netlify, DEBUG é False.
+DEBUG = os.environ.get('CONTEXT') != 'production'
 
-# AQUI: Adicionamos o URL da Vercel à lista de anfitriões permitidos
 ALLOWED_HOSTS = [
     '127.0.0.1', 
-    '.vercel.app' # Permite que qualquer subdomínio da Vercel aceda
+    '.netlify.app' # Permite que o seu site no Netlify aceda
 ]
 
 INSTALLED_APPS = [
@@ -31,6 +30,7 @@ INSTALLED_APPS = [
     'estoque',
     'financeiro',
     'dashboard',
+    'django_serverless_netlify', # Adiciona a nossa nova ferramenta
 ]
 
 MIDDLEWARE = [
@@ -63,7 +63,6 @@ TEMPLATES = [
     },
 ]
 
-# A Vercel usa o arquivo wsgi.py que está dentro da pasta 'core'
 WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
@@ -101,8 +100,8 @@ REST_FRAMEWORK = {
     )
 }
 
-# Configuração de CORS que funciona bem com a Vercel
-# Adicione o endereço do seu site do Netlify à lista de permissões
-CORS_ALLOWED_ORIGINS = [
-    "https://gerenciadordeempresa.netlify.app",
-]
+# Configuração de CORS não é tão crítica aqui, mas é bom ter
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Linha que eu tinha mencionado antes para o Netlify
+NETLIFY_FUNCTION_NAME = '__main__'
