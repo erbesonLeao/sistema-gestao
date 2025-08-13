@@ -1,19 +1,14 @@
 [build]
-  # Comando que constrói o frontend E prepara o backend
   command = "npm --prefix frontend run build && pip install -r backend/requirements.txt"
-  # Onde o site estático (frontend) está depois de construído
   publish = "frontend/build"
-  # Onde o nosso código de backend (a "Função") está
   functions = "backend/"
 
 [[redirects]]
-  # Qualquer pedido para /api/ é redirecionado para a nossa "Função" de backend
   from = "/api/*"
-  to = "/.netlify/functions/core___wsgi/:splat" # Corrigido com 3 underscores
+  to = "/.netlify/functions/app/:splat"
   status = 200
 
 [[redirects]]
-  # A nossa regra para o React Router funcionar (a regra do "carteiro")
   from = "/*"
   to = "/index.html"
   status = 200
