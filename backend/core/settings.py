@@ -102,4 +102,7 @@ REST_FRAMEWORK = {
 }
 
 # Configuração de CORS que funciona bem com a Vercel
-CORS_ALLOW_ALL_ORIGINS = True
+# Adicione o endereço do seu site do Netlify à lista de permissões
+CORS_ALLOWED_ORIGINS = [
+    "https://gerenciadordeempresa.netlify.app",
+]
