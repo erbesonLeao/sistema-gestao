@@ -9,7 +9,11 @@ import RotaProtegida from './components/RotaProtegida';
 import Layout from './components/Layout';
 import EstoquePage from './pages/EstoquePage';
 import FinanceiroPage from './pages/FinanceiroPage';
+import { API_URL } from './config';
 
+fetch(`${API_URL}/api/token/`)
+  .then(response => response.json())
+  .then(data => console.log(data));
 
 function App() {
   return (
