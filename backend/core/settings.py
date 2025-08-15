@@ -2,18 +2,30 @@ from pathlib import Path
 import os
 import dj_database_url
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
+# A chave secreta será lida de uma variável de ambiente segura no Render,
+# ou usará uma chave padrão para desenvolvimento local.
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-chave-local-para-desenvolvimento')
 
-# No ambiente do Netlify, DEBUG é False.
-DEBUG = os.environ.get('CONTEXT') != 'production'
+# O modo de depuração (DEBUG) será desativado automaticamente no Render.
+DEBUG = 'RENDER' not in os.environ
 
-ALLOWED_HOSTS = [
-    '127.0.0.1', 
-    '.netlify.app' # Permite que o seu site no Netlify aceda
+# Configuração de anfitriões permitidos (ALLOWED_HOSTS) que funciona com o Render.
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Configuração de CSRF para maior segurança em produção
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',  # Para desenvolvimento local do React
+    'https://<seu-frontend>.onrender.com',  # Substitua pelo domínio do frontend no Render
 ]
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,7 +42,6 @@ INSTALLED_APPS = [
     'estoque',
     'financeiro',
     'dashboard',
-    'django_serverless_netlify', # Adiciona a nossa nova ferramenta
 ]
 
 MIDDLEWARE = [
@@ -65,10 +76,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+# Configuração da Base de Dados que usa o PostgreSQL no Render e o SQLite localmente.
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
+        conn_max_age=600,
+        conn_health_checks=True,
     )
 }
 
@@ -80,12 +93,14 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'  # Alterado para fuso horário brasileiro
 USE_I18N = True
 USE_TZ = True
 
+# Configuração de Arquivos Estáticos para o Render.
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = []  # Adicione pastas estáticas adicionais aqui, se necessário
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -100,8 +115,13 @@ REST_FRAMEWORK = {
     )
 }
 
-# Configuração de CORS não é tão crítica aqui, mas é bom ter
-CORS_ALLOW_ALL_ORIGINS = True
+# Configuração de CORS para integração com o frontend React
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Para desenvolvimento local
+    'https://<seu-frontend>.onrender.com',  # Substitua pelo domínio do frontend no Render
+]
 
-# Linha que eu tinha mencionado antes para o Netlify
-NETLIFY_FUNCTION_NAME = '__main__'
+# Mantém a configuração de regex como fallback para outros subdomínios do Render
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.onrender\.com$",
+]
