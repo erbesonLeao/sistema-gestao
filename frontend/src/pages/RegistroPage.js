@@ -3,8 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Button, TextField, Container, Typography, Box, Alert } from '@mui/material';
 
-// A URL base da API agora vem das variáveis de ambiente que configuramos na Render.
-// Isso garante que o código funcione tanto localmente quanto em produção.
+// A URL base da API vem das variáveis de ambiente da Render.
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 function RegistroPage() {
@@ -22,11 +21,8 @@ function RegistroPage() {
             return;
         }
         try {
-            // !! AÇÃO NECESSÁRIA !!
-            // Verifique no seu arquivo `backend/urls.py` qual é o caminho correto para criar um usuário.
-            // Pode ser '/api/users/', '/api/register/', ou algo diferente.
-            // Ajuste o caminho na linha abaixo se for necessário.
-            const endpoint = '/api/register/';
+            // CORREÇÃO FINAL: O caminho correto, baseado no seu urls.py, é '/api/users/'.
+            const endpoint = '/api/users/';
             
             // Construímos a URL completa para a requisição
             const fullApiUrl = `${API_BASE_URL}${endpoint}`;
@@ -38,10 +34,8 @@ function RegistroPage() {
 
         } catch (err) {
             if (err.response && err.response.status === 400 && err.response.data.username) {
-                // Erro específico do Django quando o usuário já existe
                 setError('Este nome de usuário já existe. Por favor, escolha outro.');
             } else {
-                // Erro genérico para outros problemas (ex: falha no servidor)
                 setError('Ocorreu um erro no registro. Tente novamente.');
             }
             console.error('Erro de registro:', err);
