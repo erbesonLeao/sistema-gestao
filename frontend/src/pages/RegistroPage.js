@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Button, TextField, Container, Typography, Box, Alert } from '@mui/material';
 
-// A URL base da API vem das variáveis de ambiente da Render.
+// A URL base da API vem das variáveis de ambiente que configuramos na Render.
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 function RegistroPage() {
@@ -21,8 +21,8 @@ function RegistroPage() {
             return;
         }
         try {
-            // CORREÇÃO FINAL: O caminho correto, baseado no seu urls.py, é '/api/users/'.
-            const endpoint = '/api/users/';
+            // CORREÇÃO FINALÍSSIMA: O caminho exato do seu urls.py
+            const endpoint = '/api/registro/';
             
             // Construímos a URL completa para a requisição
             const fullApiUrl = `${API_BASE_URL}${endpoint}`;
