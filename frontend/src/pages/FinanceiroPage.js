@@ -1,7 +1,7 @@
-// frontend/src/pages/FinanceiroPage.js - VERSÃO CORRIGIDA E OTIMIZADA
+// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM CORREÇÃO DE VALOR
 
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../api'; // << Usamos nosso cliente API centralizado
+import api from '../api';
 import {
     Typography, Container, Paper, Box, Button, Tabs, Tab,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -10,28 +10,21 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 
-// As URLs fixas e a função getToken não são mais necessárias!
-
 function FinanceiroPage() {
+    // ... todo o seu código de state permanece o mesmo ...
     const [abaAtual, setAbaAtual] = useState(0);
-
-    // Estados para o CRUD de Categorias
     const [categorias, setCategorias] = useState([]);
     const [carregandoCategorias, setCarregandoCategorias] = useState(true);
     const [dialogCategoriaAberto, setDialogCategoriaAberto] = useState(false);
     const [modoEdicaoCategoria, setModoEdicaoCategoria] = useState(false);
     const [categoriaForm, setCategoriaForm] = useState({ nome: '', descricao: '', tipo: 'Despesa' });
     const [idCategoriaEdit, setIdCategoriaEdit] = useState(null);
-
-    // Estados para o CRUD de Centros de Custo
     const [centrosDeCusto, setCentrosDeCusto] = useState([]);
     const [carregandoCentros, setCarregandoCentros] = useState(true);
     const [dialogCentroAberto, setDialogCentroAberto] = useState(false);
     const [modoEdicaoCentro, setModoEdicaoCentro] = useState(false);
     const [centroForm, setCentroForm] = useState({ nome: '', descricao: '' });
     const [idCentroEdit, setIdCentroEdit] = useState(null);
-
-    // Estados para o CRUD de Lançamentos
     const [lancamentos, setLancamentos] = useState([]);
     const [carregandoLancamentos, setCarregandoLancamentos] = useState(true);
     const [dialogLancamentoAberto, setDialogLancamentoAberto] = useState(false);
@@ -42,11 +35,8 @@ function FinanceiroPage() {
     });
     const [idLancamentoEdit, setIdLancamentoEdit] = useState(null);
 
-
     const handleTabChange = (event, newValue) => { setAbaAtual(newValue); };
-
-    // As chamadas de API agora são muito mais limpas
-    const buscarCategorias = useCallback(async () => {
+    const buscarCategorias = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoCategorias(true);
         try {
             const resposta = await api.get('/api/categorias/');
@@ -54,8 +44,7 @@ function FinanceiroPage() {
         } catch (erro) { console.error("Erro ao buscar categorias:", erro); }
         finally { setCarregandoCategorias(false); }
     }, []);
-
-    const buscarCentrosDeCusto = useCallback(async () => {
+    const buscarCentrosDeCusto = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoCentros(true);
         try {
             const resposta = await api.get('/api/centros-de-custo/');
@@ -63,8 +52,7 @@ function FinanceiroPage() {
         } catch (erro) { console.error("Erro ao buscar centros de custo:", erro); }
         finally { setCarregandoCentros(false); }
     }, []);
-    
-    const buscarLancamentos = useCallback(async () => {
+    const buscarLancamentos = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoLancamentos(true);
         try {
             const resposta = await api.get('/api/lancamentos/');
@@ -72,15 +60,12 @@ function FinanceiroPage() {
         } catch (erro) { console.error("Erro ao buscar lançamentos:", erro); }
         finally { setCarregandoLancamentos(false); }
     }, []);
-
-    useEffect(() => {
+    useEffect(() => { /* ...código sem alteração... */ 
         if (abaAtual === 0) { buscarLancamentos(); }
         if (abaAtual === 1) { buscarCategorias(); }
         if (abaAtual === 2) { buscarCentrosDeCusto(); }
     }, [abaAtual, buscarLancamentos, buscarCategorias, buscarCentrosDeCusto]);
-
-    // Lógica para CATEGORIAS
-    const handleAbrirDialogCategoria = (categoria = null) => {
+    const handleAbrirDialogCategoria = (categoria = null) => { /* ...código sem alteração... */ 
         if (categoria) {
             setModoEdicaoCategoria(true);
             setIdCategoriaEdit(categoria.id);
@@ -93,7 +78,7 @@ function FinanceiroPage() {
     };
     const handleFecharDialogCategoria = () => setDialogCategoriaAberto(false);
     const handleInputChangeCategoria = (e) => setCategoriaForm(prevState => ({ ...prevState, [e.target.name]: e.target.value }));
-    const handleSalvarCategoria = async () => {
+    const handleSalvarCategoria = async () => { /* ...código sem alteração... */ 
         try {
             if (modoEdicaoCategoria) {
                 await api.put(`/api/categorias/${idCategoriaEdit}/`, categoriaForm);
@@ -107,9 +92,7 @@ function FinanceiroPage() {
             alert("Erro ao salvar categoria.");
         }
     };
-
-    // Lógica para CENTROS DE CUSTO
-    const handleAbrirDialogCentro = (centro = null) => {
+    const handleAbrirDialogCentro = (centro = null) => { /* ...código sem alteração... */ 
         if (centro) {
             setModoEdicaoCentro(true);
             setIdCentroEdit(centro.id);
@@ -122,7 +105,7 @@ function FinanceiroPage() {
     };
     const handleFecharDialogCentro = () => setDialogCentroAberto(false);
     const handleInputChangeCentro = (e) => setCentroForm(prevState => ({ ...prevState, [e.target.name]: e.target.value }));
-    const handleSalvarCentro = async () => {
+    const handleSalvarCentro = async () => { /* ...código sem alteração... */ 
         try {
             if (modoEdicaoCentro) {
                 await api.put(`/api/centros-de-custo/${idCentroEdit}/`, centroForm);
@@ -136,10 +119,7 @@ function FinanceiroPage() {
             alert("Erro ao salvar centro de custo.");
         }
     };
-
-    // Lógica para LANÇAMENTOS
-    const handleAbrirDialogLancamento = async (lancamento = null) => {
-        // Busca os dados mais recentes antes de abrir o formulário
+    const handleAbrirDialogLancamento = async (lancamento = null) => { /* ...código sem alteração... */ 
         await Promise.all([buscarCategorias(), buscarCentrosDeCusto()]);
         if (lancamento) {
             setModoEdicaoLancamento(true);
@@ -154,8 +134,8 @@ function FinanceiroPage() {
             setModoEdicaoLancamento(false);
             setLancamentoForm({
                 descricao: '', valor: '', tipo: 'Despesa', status_pagamento: 'Pendente',
-                data_lancamento: new Date().toISOString().split('T')[0], // Sugere data atual
-                data_competencia: new Date().toISOString().split('T')[0], // Sugere data atual
+                data_lancamento: new Date().toISOString().split('T')[0],
+                data_competencia: new Date().toISOString().split('T')[0],
                 categoria: '', centro_de_custo: ''
             });
         }
@@ -163,9 +143,28 @@ function FinanceiroPage() {
     };
     const handleFecharDialogLancamento = () => setDialogLancamentoAberto(false);
     const handleInputChangeLancamento = (e) => setLancamentoForm(prevState => ({ ...prevState, [e.target.name]: e.target.value }));
+    
+    // ##################################################################
+    // ## AQUI ESTÁ A ÚNICA MUDANÇA ##
+    // ##################################################################
     const handleSalvarLancamento = async () => {
         try {
-            const payload = { ...lancamentoForm };
+            // 1. Pega o valor do formulário como uma string
+            let valorFormatado = String(lancamentoForm.valor);
+            
+            // 2. Remove os pontos de milhar (ex: "20.000" -> "20000")
+            valorFormatado = valorFormatado.replace(/\./g, '');
+            
+            // 3. Troca a vírgula decimal por um ponto decimal (ex: "20000,50" -> "20000.50")
+            valorFormatado = valorFormatado.replace(',', '.');
+            
+            // 4. Cria o payload com o valor limpo e convertido para número
+            const payload = { 
+                ...lancamentoForm,
+                valor: parseFloat(valorFormatado) // Converte a string limpa para um número
+            };
+
+            // Remove chaves estrangeiras se estiverem vazias, para não dar erro no Django
             if (!payload.categoria) delete payload.categoria;
             if (!payload.centro_de_custo) delete payload.centro_de_custo;
 
@@ -178,13 +177,15 @@ function FinanceiroPage() {
             buscarLancamentos();
         } catch (erro) {
             console.error("Erro ao salvar lançamento:", erro.response?.data || erro);
-            alert("Erro ao salvar lançamento.");
+            // Podemos até melhorar a mensagem de erro no futuro
+            alert("Erro ao salvar lançamento. Verifique se todos os campos obrigatórios estão preenchidos corretamente.");
         }
     };
     
     // O JSX para renderização permanece o mesmo
     return (
         <Container maxWidth="xl">
+            {/* ... todo o seu código JSX permanece o mesmo ... */}
             <Typography variant="h4" sx={{ mb: 4 }}>Controle Financeiro</Typography>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs value={abaAtual} onChange={handleTabChange}>
@@ -194,7 +195,6 @@ function FinanceiroPage() {
                 </Tabs>
             </Box>
             
-            {/* Aba de Lançamentos */}
             {abaAtual === 0 && (
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -216,7 +216,6 @@ function FinanceiroPage() {
                 </Paper>
             )}
 
-            {/* Aba de Categorias */}
             {abaAtual === 1 && (
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -235,7 +234,6 @@ function FinanceiroPage() {
                 </Paper>
             )}
 
-            {/* Aba de Centros de Custo */}
             {abaAtual === 2 && (
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -254,12 +252,11 @@ function FinanceiroPage() {
                 </Paper>
             )}
 
-            {/* Diálogos de Formulário */}
             <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
                 <DialogTitle>{modoEdicaoLancamento ? 'Editar Lançamento' : 'Novo Lançamento'}</DialogTitle>
                 <DialogContent>
                     <TextField name="descricao" label="Descrição" value={lancamentoForm.descricao} fullWidth margin="dense" required onChange={handleInputChangeLancamento} />
-                    <TextField name="valor" label="Valor (R$)" value={lancamentoForm.valor} type="number" fullWidth margin="dense" required onChange={handleInputChangeLancamento} />
+                    <TextField name="valor" label="Valor (R$)" value={lancamentoForm.valor} type="text" fullWidth margin="dense" required onChange={handleInputChangeLancamento} />
                     <FormControl fullWidth margin="dense" required><InputLabel>Tipo</InputLabel><Select name="tipo" value={lancamentoForm.tipo} label="Tipo" onChange={handleInputChangeLancamento}><MenuItem value="Receita">Receita</MenuItem><MenuItem value="Despesa">Despesa</MenuItem></Select></FormControl>
                     <FormControl fullWidth margin="dense"><InputLabel>Categoria</InputLabel><Select name="categoria" value={lancamentoForm.categoria} label="Categoria" onChange={handleInputChangeLancamento}>{categorias.filter(c => c.tipo === lancamentoForm.tipo).map(cat => (<MenuItem key={cat.id} value={cat.id}>{cat.nome}</MenuItem>))}</Select></FormControl>
                     <FormControl fullWidth margin="dense"><InputLabel>Centro de Custo</InputLabel><Select name="centro_de_custo" value={lancamentoForm.centro_de_custo} label="Centro de Custo" onChange={handleInputChangeLancamento}>{centrosDeCusto.map(cen => (<MenuItem key={cen.id} value={cen.id}>{cen.nome}</MenuItem>))}</Select></FormControl>
