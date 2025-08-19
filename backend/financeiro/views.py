@@ -1,4 +1,5 @@
-# backend/financeiro/views.py
+# backend/financeiro/views.py - VERSÃO CORRIGIDA
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import CategoriaFinanceira, CentroDeCusto, LancamentoFinanceiro
@@ -15,6 +16,12 @@ class CentroDeCustoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 class LancamentoFinanceiroViewSet(viewsets.ModelViewSet):
-    queryset = LancamentoFinanceiro.objects.all().order_by('-data_lancamento') # Ordena do mais recente para o mais antigo
+    queryset = LancamentoFinanceiro.objects.all().order_by('-data_lancamento')
     serializer_class = LancamentoFinanceiroSerializer
     permission_classes = [IsAuthenticated]
+
+    # AQUI ESTÁ A MUDANÇA: Adicionamos este método
+    def perform_create(self, serializer):
+        # Este método é chamado automaticamente ao criar um novo objeto.
+        # Ele pega o usuário logado (self.request.user) e o salva no campo 'criado_por'.
+        serializer.save(criado_por=self.request.user)
