@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-// IMPORTANTE: Vamos usar o cliente 'api' que criamos, e não mais o 'axios' diretamente
-import api from '../api';
+import axios from 'axios'; // << VOLTAMOS A USAR O AXIOS ORIGINAL AQUI
 import { Button, TextField, Container, Typography, Box, Alert } from '@mui/material';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 function LoginPage() {
     const [username, setUsername] = useState('');
@@ -15,16 +16,18 @@ function LoginPage() {
         setError('');
         try {
             const endpoint = '/api/token/';
-            
-            // Usamos 'api.post' que já tem a URL base configurada
-            const resposta = await api.post(endpoint, {
+            const fullApiUrl = `${API_BASE_URL}${endpoint}`;
+
+            // Usamos o 'axios.post' original, sem o interceptador que adiciona tokens.
+            // Isso garante que a requisição de login seja sempre "limpa".
+            const resposta = await axios.post(fullApiUrl, {
                 username: username,
                 password: password,
             });
 
             // Armazena AMBOS os tokens no navegador
             localStorage.setItem('accessToken', resposta.data.access);
-            localStorage.setItem('refreshToken', resposta.data.refresh); // <-- ESTA É A NOVA LINHA
+            localStorage.setItem('refreshToken', resposta.data.refresh);
 
             // Redireciona para o dashboard após o login bem-sucedido
             navigate('/dashboard');
