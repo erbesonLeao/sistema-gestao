@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+// IMPORTANTE: Vamos usar o cliente 'api' que criamos, e não mais o 'axios' diretamente
+import api from '../api';
 import { Button, TextField, Container, Typography, Box, Alert } from '@mui/material';
-
-// A URL base da API agora vem das variáveis de ambiente que configuramos na Render.
-const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 function LoginPage() {
     const [username, setUsername] = useState('');
@@ -16,17 +14,17 @@ function LoginPage() {
         evento.preventDefault();
         setError('');
         try {
-            // O caminho correto para obter o token de autenticação, vindo do seu urls.py
             const endpoint = '/api/token/';
-            const fullApiUrl = `${API_BASE_URL}${endpoint}`;
-
-            const resposta = await axios.post(fullApiUrl, {
+            
+            // Usamos 'api.post' que já tem a URL base configurada
+            const resposta = await api.post(endpoint, {
                 username: username,
                 password: password,
             });
 
-            // Armazena o token de acesso no navegador para futuras requisições
+            // Armazena AMBOS os tokens no navegador
             localStorage.setItem('accessToken', resposta.data.access);
+            localStorage.setItem('refreshToken', resposta.data.refresh); // <-- ESTA É A NOVA LINHA
 
             // Redireciona para o dashboard após o login bem-sucedido
             navigate('/dashboard');
