@@ -1,12 +1,17 @@
-# backend/usuarios/views.py - CÓDIGO COMPLETO
+# backend/usuarios/views.py - ADICIONE ESTE CÓDIGO AO FINAL
 
-from django.contrib.auth.models import User
-from .serializers import RegistroSerializer
-from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated # Importe o IsAuthenticated
+from .serializers import UserSerializer # Importe o novo UserSerializer
 
-# View para CRIAR um novo usuário (qualquer um pode se registrar)
-class RegistroView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,) # Permite acesso sem autenticação
-    serializer_class = RegistroSerializer
+# ... sua classe RegistroView continua aqui em cima ...
+
+# View para retornar os dados do usuário atualmente logado
+class CurrentUserView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated] # Apenas usuários autenticados podem acessar
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        # A mágica acontece aqui: em vez de buscar um usuário pelo ID,
+        # simplesmente retornamos o 'request.user', que o Django já
+        # sabe quem é, graças ao token de autenticação.
+        return self.request.user
