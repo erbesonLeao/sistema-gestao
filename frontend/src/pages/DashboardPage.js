@@ -1,30 +1,38 @@
-// frontend/src/pages/DashboardPage.js - VERSÃO FINAL CORRIGIDA
+// frontend/src/pages/DashboardPage.js - VERSÃO REFINADA E MODERNA
 
 import React, { useState, useEffect, useCallback } from 'react';
-import api from '../api'; // << IMPORTANTE: Importamos nosso novo cliente API!
+import api from '../api';
 import {
     Typography, Container, Paper, Grid, Box, CircularProgress,
-    List, ListItem, ListItemIcon, ListItemText, Divider
+    List, ListItem, ListItemIcon, ListItemText, Divider, useTheme // 1. Importamos o useTheme
 } from '@mui/material';
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, CartesianGrid, XAxis, YAxis, Bar, ResponsiveContainer } from 'recharts';
 import CakeIcon from '@mui/icons-material/Cake';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import EventIcon from '@mui/icons-material/Event';
+import BarChartIcon from '@mui/icons-material/BarChart'; // Ícone para o estado vazio
+import PieChartIcon from '@mui/icons-material/PieChart'; // Ícone para o estado vazio
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 function DashboardPage() {
     const [dashboardData, setDashboardData] = useState(null);
     const [carregando, setCarregando] = useState(true);
+    const theme = useTheme(); // 2. Acessamos o nosso objeto de tema
+
+    // 3. As cores do gráfico agora vêm da nossa paleta de tema, garantindo consistência
+    const COLORS = [
+        theme.palette.primary.main,
+        theme.palette.secondary.main,
+        '#FFBB28', // Amarelo
+        '#FF8042', // Laranja
+        theme.palette.primary.light,
+        theme.palette.secondary.light
+    ];
 
     const buscarDadosDashboard = useCallback(async () => {
         setCarregando(true);
         try {
-            // A chamada ficou muito mais limpa! Só precisamos do endpoint específico.
-            // O 'api' já cuida da URL base e do token de autenticação.
-            // Verifique no seu urls.py se este é o caminho correto para os dados do dashboard.
             const resposta = await api.get('/api/dashboard/summary/');
-            
             setDashboardData(resposta.data);
         } catch (erro) {
             console.error("Erro ao buscar dados do dashboard:", erro);
@@ -37,14 +45,46 @@ function DashboardPage() {
         buscarDadosDashboard();
     }, [buscarDadosDashboard]);
 
-    // O resto do seu código permanece exatamente o mesmo, pois é a parte de renderização
-    // e já está excelente.
-
+    // 4. Componente do Cartão com EFEITO VIDRO (GLASSMORPHISM) e ANIMAÇÃO HOVER
     const SummaryCard = ({ title, value, color = 'text.primary' }) => (
-        <Paper elevation={3} sx={{ p: 2, textAlign: 'center', height: '100%', borderRadius: '16px' }}>
+        <Paper 
+            elevation={4}
+            sx={{
+                p: 2,
+                textAlign: 'center',
+                height: '100%',
+                borderRadius: '16px',
+                backdropFilter: 'blur(10px)',
+                backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(255, 255, 255, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: theme.shadows[6],
+                transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                '&:hover': {
+                    transform: 'scale(1.05)',
+                    boxShadow: theme.shadows[12],
+                }
+            }}
+        >
             <Typography variant="h6" color="text.secondary">{title}</Typography>
             <Typography variant="h4" color={color} sx={{ fontWeight: 'bold' }}>{value}</Typography>
         </Paper>
+    );
+    
+    // 5. Novo componente para ESTADOS VAZIOS (EMPTY STATES)
+    const EmptyState = ({ message, icon }) => (
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            color: 'text.secondary',
+        }}>
+            {icon}
+            <Typography sx={{ mt: 1 }}>{message}</Typography>
+        </Box>
     );
 
     const getAvisoIcon = (aviso) => {
@@ -63,6 +103,7 @@ function DashboardPage() {
     return (
         <Container maxWidth="xl">
             <Typography variant="h4" sx={{ mb: 4 }}>Painel de Controle</Typography>
+
             <Grid container spacing={3}>
                 <Grid item xs={12} sm={6} md={3}><SummaryCard title="Funcionários Ativos" value={dashboardData.summary_cards.total_funcionarios_ativos} /></Grid>
                 <Grid item xs={12} sm={6} md={3}><SummaryCard title="Total de Máquinas" value={dashboardData.summary_cards.total_maquinas} /></Grid>
@@ -86,7 +127,10 @@ function DashboardPage() {
                                     <Legend />
                                 </PieChart>
                             </ResponsiveContainer>
-                        ) : ( <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Typography>Sem dados para exibir</Typography></Box> )}
+                        ) : ( 
+                            // 6. Usamos nosso novo componente de estado vazio
+                            <EmptyState message="Sem dados para exibir" icon={<PieChartIcon sx={{ fontSize: 40 }} />} />
+                        )}
                     </Paper>
                 </Grid>
                 <Grid item xs={12} md={6} lg={4}>
@@ -100,10 +144,13 @@ function DashboardPage() {
                                     <YAxis />
                                     <Tooltip formatter={(value) => `R$ ${parseFloat(value).toFixed(2)}`} />
                                     <Legend />
-                                    <Bar dataKey="total" fill="#82ca9d" name="Total Gasto" />
+                                    <Bar dataKey="total" fill={theme.palette.secondary.main} name="Total Gasto" />
                                 </BarChart>
                             </ResponsiveContainer>
-                        ) : ( <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}><Typography>Sem despesas registadas</Typography></Box> )}
+                        ) : ( 
+                            // 6. Usamos nosso novo componente de estado vazio
+                            <EmptyState message="Sem despesas registadas" icon={<BarChartIcon sx={{ fontSize: 40 }} />} />
+                        )}
                     </Paper>
                 </Grid>
                 <Grid item xs={12} lg={4}>
