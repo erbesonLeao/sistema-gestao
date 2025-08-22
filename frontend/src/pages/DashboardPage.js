@@ -1,32 +1,28 @@
-// frontend/src/pages/DashboardPage.js - VERSÃO REFINADA E MODERNA
+// frontend/src/pages/DashboardPage.js - VERSÃO FINAL COM ANIMAÇÕES
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
 import {
     Typography, Container, Paper, Grid, Box, CircularProgress,
-    List, ListItem, ListItemIcon, ListItemText, Divider, useTheme // 1. Importamos o useTheme
+    List, ListItem, ListItemIcon, ListItemText, Divider, useTheme
 } from '@mui/material';
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, CartesianGrid, XAxis, YAxis, Bar, ResponsiveContainer } from 'recharts';
 import CakeIcon from '@mui/icons-material/Cake';
 import CelebrationIcon from '@mui/icons-material/Celebration';
 import EventIcon from '@mui/icons-material/Event';
-import BarChartIcon from '@mui/icons-material/BarChart'; // Ícone para o estado vazio
-import PieChartIcon from '@mui/icons-material/PieChart'; // Ícone para o estado vazio
+import BarChartIcon from '@mui/icons-material/BarChart';
+import PieChartIcon from '@mui/icons-material/PieChart';
 
 
 function DashboardPage() {
     const [dashboardData, setDashboardData] = useState(null);
     const [carregando, setCarregando] = useState(true);
-    const theme = useTheme(); // 2. Acessamos o nosso objeto de tema
+    const [visible, setVisible] = useState(false); // 1. Estado para controlar a animação
+    const theme = useTheme();
 
-    // 3. As cores do gráfico agora vêm da nossa paleta de tema, garantindo consistência
     const COLORS = [
-        theme.palette.primary.main,
-        theme.palette.secondary.main,
-        '#FFBB28', // Amarelo
-        '#FF8042', // Laranja
-        theme.palette.primary.light,
-        theme.palette.secondary.light
+        theme.palette.primary.main, theme.palette.secondary.main, '#FFBB28', '#FF8042',
+        theme.palette.primary.light, theme.palette.secondary.light
     ];
 
     const buscarDadosDashboard = useCallback(async () => {
@@ -45,26 +41,29 @@ function DashboardPage() {
         buscarDadosDashboard();
     }, [buscarDadosDashboard]);
 
-    // 4. Componente do Cartão com EFEITO VIDRO (GLASSMORPHISM) e ANIMAÇÃO HOVER
+    // 2. useEffect para acionar a animação quando os dados terminarem de carregar
+    useEffect(() => {
+        if (!carregando) {
+            // Usamos um pequeno timeout para garantir que a transição CSS ocorra
+            const timer = setTimeout(() => {
+                setVisible(true);
+            }, 100); // 100 milissegundos
+            return () => clearTimeout(timer);
+        }
+    }, [carregando]);
+
+
     const SummaryCard = ({ title, value, color = 'text.primary' }) => (
         <Paper 
             elevation={4}
             sx={{
-                p: 2,
-                textAlign: 'center',
-                height: '100%',
-                borderRadius: '16px',
+                p: 2, textAlign: 'center', height: '100%', borderRadius: '16px',
                 backdropFilter: 'blur(10px)',
                 backgroundColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(255, 255, 255, 0.6)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: theme.shadows[6],
+                    ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)', boxShadow: theme.shadows[6],
                 transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                '&:hover': {
-                    transform: 'scale(1.05)',
-                    boxShadow: theme.shadows[12],
-                }
+                '&:hover': { transform: 'scale(1.05)', boxShadow: theme.shadows[12] }
             }}
         >
             <Typography variant="h6" color="text.secondary">{title}</Typography>
@@ -72,16 +71,8 @@ function DashboardPage() {
         </Paper>
     );
     
-    // 5. Novo componente para ESTADOS VAZIOS (EMPTY STATES)
     const EmptyState = ({ message, icon }) => (
-        <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            color: 'text.secondary',
-        }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'text.secondary' }}>
             {icon}
             <Typography sx={{ mt: 1 }}>{message}</Typography>
         </Box>
@@ -100,11 +91,19 @@ function DashboardPage() {
         return <Typography>Não foi possível carregar os dados do dashboard.</Typography>;
     }
 
+    // 3. Adicionamos as propriedades de transição ao container principal dos dados
+    const animationStyles = {
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'opacity 0.5s ease-out, transform 0.5s ease-out',
+    };
+
     return (
-        <Container maxWidth="xl">
+        <Container maxWidth="xl" sx={animationStyles}>
             <Typography variant="h4" sx={{ mb: 4 }}>Painel de Controle</Typography>
 
             <Grid container spacing={3}>
+                {/* ...os 4 SummaryCards permanecem os mesmos... */}
                 <Grid item xs={12} sm={6} md={3}><SummaryCard title="Funcionários Ativos" value={dashboardData.summary_cards.total_funcionarios_ativos} /></Grid>
                 <Grid item xs={12} sm={6} md={3}><SummaryCard title="Total de Máquinas" value={dashboardData.summary_cards.total_maquinas} /></Grid>
                 <Grid item xs={12} sm={6} md={3}><SummaryCard title="Produtos em Estoque" value={dashboardData.summary_cards.total_produtos_estoque} /></Grid>
@@ -114,7 +113,8 @@ function DashboardPage() {
             <Divider sx={{ my: 4, border: 'none' }} />
 
             <Grid container spacing={3}>
-                <Grid item xs={12} md={6} lg={4}>
+                 {/* ...os 3 cards com gráficos permanecem os mesmos... */}
+                 <Grid item xs={12} md={6} lg={4}>
                     <Paper elevation={3} sx={{ p: 2, height: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderRadius: '16px' }}>
                         <Typography variant="h6" gutterBottom>Funcionários por Status</Typography>
                         {dashboardData.funcionarios_chart.length > 0 ? (
@@ -127,10 +127,7 @@ function DashboardPage() {
                                     <Legend />
                                 </PieChart>
                             </ResponsiveContainer>
-                        ) : ( 
-                            // 6. Usamos nosso novo componente de estado vazio
-                            <EmptyState message="Sem dados para exibir" icon={<PieChartIcon sx={{ fontSize: 40 }} />} />
-                        )}
+                        ) : ( <EmptyState message="Sem dados para exibir" icon={<PieChartIcon sx={{ fontSize: 40 }} />} /> )}
                     </Paper>
                 </Grid>
                 <Grid item xs={12} md={6} lg={4}>
@@ -147,10 +144,7 @@ function DashboardPage() {
                                     <Bar dataKey="total" fill={theme.palette.secondary.main} name="Total Gasto" />
                                 </BarChart>
                             </ResponsiveContainer>
-                        ) : ( 
-                            // 6. Usamos nosso novo componente de estado vazio
-                            <EmptyState message="Sem despesas registadas" icon={<BarChartIcon sx={{ fontSize: 40 }} />} />
-                        )}
+                        ) : ( <EmptyState message="Sem despesas registadas" icon={<BarChartIcon sx={{ fontSize: 40 }} />} /> )}
                     </Paper>
                 </Grid>
                 <Grid item xs={12} lg={4}>
