@@ -1,12 +1,13 @@
-// frontend/src/components/Layout.js - VERSÃO FINAL COM BOTÃO DE TEMA FIXO
+// frontend/src/components/Layout.js - VERSÃO FINAL COM NOTIFICAÇÕES
 
 import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   Box, AppBar, Toolbar, Typography, Drawer, List, 
   ListItem, ListItemButton, ListItemIcon, ListItemText, Divider,
-  Avatar, Menu, MenuItem, IconButton, Tooltip
+  Avatar, Menu, MenuItem, IconButton, Tooltip,
+  Badge // 1. Importamos o Badge para o contador
 } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
@@ -16,21 +17,45 @@ import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import NotificationsIcon from '@mui/icons-material/Notifications'; // 2. Importamos o ícone de sino
 
 const drawerWidth = 240;
 
 function Layout() {
-  const { user, logout, darkMode, toggleDarkMode } = useAuth(); // Pegamos também o darkMode e a função toggle
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
+  // 3. Pegamos a lista de notificações e a função para marcá-las como lidas
+  const { user, logout, darkMode, toggleDarkMode, notificacoes, marcarNotificacoesComoLidas } = useAuth(); 
+  
+  // Estados para controlar os menus dropdown
+  const [userAnchorEl, setUserAnchorEl] = useState(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
+  const isUserMenuOpen = Boolean(userAnchorEl);
+  const isNotificationMenuOpen = Boolean(notificationAnchorEl);
+  
+  const navigate = useNavigate();
 
-  const handleMenu = (event) => setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
+  const handleUserMenu = (event) => setUserAnchorEl(event.currentTarget);
+  const handleUserMenuClose = () => setUserAnchorEl(null);
+
+  const handleNotificationMenu = (event) => {
+    setNotificationAnchorEl(event.currentTarget);
+    // 4. Quando o usuário abre o menu, marcamos todas as notificações como lidas
+    if (notificacoes.length > 0) {
+        marcarNotificacoesComoLidas();
+    }
+  };
+  const handleNotificationMenuClose = () => setNotificationAnchorEl(null);
 
   const handleLogout = () => {
-    handleClose();
+    handleUserMenuClose();
     logout();
   };
+
+  const handleNotificationClick = (link) => {
+    handleNotificationMenuClose();
+    if(link) {
+      navigate(link); // Navega para a página relevante (ex: /estoque)
+    }
+  }
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -43,20 +68,28 @@ function Layout() {
             Gerenciador da Empresa
           </Typography>
           
-          {/* Caixa para alinhar os ícones da direita */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* 1. BOTÃO DE TROCA DE TEMA NOVO E FIXO */}
+            {/* Botão de Tema */}
             <Tooltip title={darkMode ? "Modo Claro" : "Modo Escuro"}>
               <IconButton onClick={toggleDarkMode} color="inherit">
                 {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
               </IconButton>
             </Tooltip>
 
-            {/* 2. MENU DO USUÁRIO, AGORA AO LADO DO BOTÃO DE TEMA */}
+            {/* 5. NOVO BOTÃO DE NOTIFICAÇÕES (SININHO) */}
+            <Tooltip title="Notificações">
+              <IconButton color="inherit" onClick={handleNotificationMenu}>
+                <Badge badgeContent={notificacoes.length} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            
+            {/* Menu do Usuário */}
             {user && (
               <div>
                 <Tooltip title="Opções da Conta">
-                  <IconButton onClick={handleMenu} sx={{ p: 0, ml: 1 }}>
+                  <IconButton onClick={handleUserMenu} sx={{ p: 0, ml: 1 }}>
                     <Avatar sx={{ bgcolor: 'secondary.main' }}>
                       {user.username.charAt(0).toUpperCase()}
                     </Avatar>
@@ -64,12 +97,12 @@ function Layout() {
                 </Tooltip>
                 <Menu
                   sx={{ mt: '45px' }}
-                  anchorEl={anchorEl}
+                  anchorEl={userAnchorEl}
                   anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                   keepMounted
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                  open={open}
-                  onClose={handleClose}
+                  open={isUserMenuOpen}
+                  onClose={handleUserMenuClose}
                 >
                   <Box sx={{ px: 2, py: 1, textAlign: 'center' }}>
                       <Typography variant="h6">{user.first_name || user.username}</Typography>
@@ -87,19 +120,51 @@ function Layout() {
         </Toolbar>
       </AppBar>
 
+      {/* 6. NOVO MENU DROPDOWN PARA AS NOTIFICAÇÕES */}
+      <Menu
+        sx={{ mt: '45px' }}
+        anchorEl={notificationAnchorEl}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        keepMounted
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        open={isNotificationMenuOpen}
+        onClose={handleNotificationMenuClose}
+      >
+        <Box sx={{ px: 2, py: 1 }}>
+            <Typography variant="h6">Notificações</Typography>
+        </Box>
+        <Divider />
+        {notificacoes.length > 0 ? (
+            notificacoes.map((notificacao) => (
+                <MenuItem key={notificacao.id} onClick={() => handleNotificationClick(notificacao.link)}>
+                    <ListItemText 
+                        primary={notificacao.mensagem} 
+                        secondary={new Date(notificacao.data_criacao).toLocaleString('pt-BR')} 
+                    />
+                </MenuItem>
+            ))
+        ) : (
+            <MenuItem disabled>
+                <ListItemText primary="Nenhuma notificação nova" />
+            </MenuItem>
+        )}
+      </Menu>
+
+      {/* Drawer (Menu Lateral) */}
       <Drawer
         variant="permanent"
         sx={{ width: drawerWidth, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' }, }}
       >
         <Toolbar />
         <Box sx={{ overflow: 'auto' }}>
-          <List>
-            <ListItem disablePadding><ListItemButton component={Link} to="/dashboard"><ListItemIcon><DashboardIcon /></ListItemIcon><ListItemText primary="Dashboard" /></ListItemButton></ListItem>
-            <ListItem disablePadding><ListItemButton component={Link} to="/maquinario"><ListItemIcon><PrecisionManufacturingIcon /></ListItemIcon><ListItemText primary="Maquinário" /></ListItemButton></ListItem>
-            <ListItem disablePadding><ListItemButton component={Link} to="/funcionarios"><ListItemIcon><GroupIcon /></ListItemIcon><ListItemText primary="Funcionários" /></ListItemButton></ListItem>
-            <ListItem disablePadding><ListItemButton component={Link} to="/estoque"><ListItemIcon><InventoryIcon /></ListItemIcon><ListItemText primary="Estoque" /></ListItemButton></ListItem>
-            <ListItem disablePadding><ListItemButton component={Link} to="/financeiro"><ListItemIcon><MonetizationOnIcon /></ListItemIcon><ListItemText primary="Financeiro" /></ListItemButton></ListItem>
-          </List>
+            {/* ...seu código do menu lateral sem alterações... */}
+            <List>
+                <ListItem disablePadding><ListItemButton component={Link} to="/dashboard"><ListItemIcon><DashboardIcon /></ListItemIcon><ListItemText primary="Dashboard" /></ListItemButton></ListItem>
+                <ListItem disablePadding><ListItemButton component={Link} to="/maquinario"><ListItemIcon><PrecisionManufacturingIcon /></ListItemIcon><ListItemText primary="Maquinário" /></ListItemButton></ListItem>
+                <ListItem disablePadding><ListItemButton component={Link} to="/funcionarios"><ListItemIcon><GroupIcon /></ListItemIcon><ListItemText primary="Funcionários" /></ListItemButton></ListItem>
+                <ListItem disablePadding><ListItemButton component={Link} to="/estoque"><ListItemIcon><InventoryIcon /></ListItemIcon><ListItemText primary="Estoque" /></ListItemButton></ListItem>
+                <ListItem disablePadding><ListItemButton component={Link} to="/financeiro"><ListItemIcon><MonetizationOnIcon /></ListItemIcon><ListItemText primary="Financeiro" /></ListItemButton></ListItem>
+            </List>
         </Box>
       </Drawer>
 
