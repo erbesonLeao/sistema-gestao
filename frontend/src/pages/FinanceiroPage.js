@@ -1,4 +1,4 @@
-// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM URL DE EXPORTAÇÃO CORRIGIDA
+// frontend/src/pages/FinanceiroPage.js - VERSÃO FINALÍSSIMA COM URL DE EXPORTAÇÃO CORRIGIDA
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
@@ -84,8 +84,11 @@ function FinanceiroPage() {
     };
 
     const handleExportCSV = () => {
-        // AQUI ESTÁ A ÚNICA MUDANÇA: A URL foi corrigida
-        const url = `${process.env.REACT_APP_API_URL}/api/financeiro/lancamentos/export/csv/`;
+        // ### AQUI ESTÁ A CORREÇÃO FINAL ###
+        // Vamos remover o '/financeiro' do caminho, pois o router principal
+        // do seu projeto provavelmente já lida com isso.
+        const url = `${process.env.REACT_APP_API_URL}/api/lancamentos/export/csv/`;
+        
         window.open(url, '_blank');
     };
 
