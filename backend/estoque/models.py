@@ -1,15 +1,23 @@
-# backend/estoque/models.py
+# backend/estoque/models.py - VERSÃO CORRIGIDA
 
 from django.db import models
+from maquinario.models import Maquinario
 
 class Produto(models.Model):
-    nome = models.CharField(max_length=200, unique=True)
-    descricao = models.TextField(blank=True, null=True) # Descrição é opcional
-    quantidade_em_estoque = models.IntegerField(default=0)
-    unidade_medida = models.CharField(max_length=50, default='unidade') # Ex: unidade, kg, litro, metro
-    ponto_de_ressuprimento = models.IntegerField(default=0, help_text="Quantidade mínima para alertar a necessidade de compra.")
-    data_de_criacao = models.DateTimeField(auto_now_add=True)
-    ultima_atualizacao = models.DateTimeField(auto_now=True)
+    nome = models.CharField(max_length=100, unique=True)
+    descricao = models.TextField(blank=True, null=True)
+    quantidade_em_estoque = models.PositiveIntegerField(default=0)
+    unidade_medida = models.CharField(max_length=20, default='unidade')
+    ponto_de_ressuprimento = models.PositiveIntegerField(default=0)
+    
+    # Adicionamos um related_name para evitar conflitos
+    maquina = models.ForeignKey(
+        Maquinario, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='produtos' 
+    )
 
     def __str__(self):
         return self.nome
