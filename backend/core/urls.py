@@ -1,7 +1,6 @@
-# backend/core/urls.py (o principal do projeto) - VERSÃO COM IMPORT CORRIGIDO
+# backend/core/urls.py (o principal do projeto) - VERSÃO FINAL CORRIGIDA
 
 from django.contrib import admin
-# AQUI ESTÁ A CORREÇÃO: Adicionamos 'include' à importação
 from django.urls import path, include 
 
 urlpatterns = [
