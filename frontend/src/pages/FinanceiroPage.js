@@ -1,7 +1,8 @@
-// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM BOTÃO DE EXPORTAR
+// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM URL DE EXPORTAÇÃO CORRIGIDA
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
+// ... todas as suas outras importações ...
 import {
     Typography, Container, Paper, Box, Button, Tabs, Tab,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -10,10 +11,8 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 
-// A URL base da API já está no nosso `api.js`, não precisamos dela aqui.
-
 function FinanceiroPage() {
-    // ... todos os seus 'useState' permanecem os mesmos ...
+    // ... todo o seu código de state e outras funções permanece o mesmo ...
     const [abaAtual, setAbaAtual] = useState(0);
     const [categorias, setCategorias] = useState([]);
     const [carregandoCategorias, setCarregandoCategorias] = useState(true);
@@ -37,7 +36,6 @@ function FinanceiroPage() {
     });
     const [idLancamentoEdit, setIdLancamentoEdit] = useState(null);
 
-    // ... todas as suas funções handle... e buscar... permanecem as mesmas ...
     const handleTabChange = (event, newValue) => { setAbaAtual(newValue); };
     const buscarCategorias = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoCategorias(true);
@@ -85,39 +83,25 @@ function FinanceiroPage() {
         try { let valorFormatado = String(lancamentoForm.valor); valorFormatado = valorFormatado.replace(/\./g, ''); valorFormatado = valorFormatado.replace(',', '.'); const payload = { ...lancamentoForm, valor: parseFloat(valorFormatado) }; if (!payload.categoria) delete payload.categoria; if (!payload.centro_de_custo) delete payload.centro_de_custo; if (modoEdicaoLancamento) { await api.put(`/api/lancamentos/${idLancamentoEdit}/`, payload); } else { await api.post('/api/lancamentos/', payload); } handleFecharDialogLancamento(); buscarLancamentos(); } catch (erro) { console.error("Erro ao salvar lançamento:", erro.response?.data || erro); alert("Erro ao salvar lançamento. Verifique se todos os campos obrigatórios estão preenchidos corretamente."); }
     };
 
-    // ++ AQUI ESTÁ A NOVA FUNÇÃO PARA EXPORTAR ++
     const handleExportCSV = () => {
-        // Por enquanto, não estamos usando os filtros de data, mas a lógica pode ser adicionada aqui
-        // const { dataInicio, dataFim } = seusEstadosDeFiltro; 
-        // let url = `${process.env.REACT_APP_API_URL}/api/financeiro/export/csv/`;
-        // if (dataInicio && dataFim) {
-        //     url += `?data_inicio=${dataInicio}&data_fim=${dataFim}`;
-        // }
-        
-        const url = `${process.env.REACT_APP_API_URL}/api/financeiro/export/csv/`;
-
-        // Abrir a URL em uma nova aba fará com que o navegador inicie o download
+        // AQUI ESTÁ A ÚNICA MUDANÇA: A URL foi corrigida
+        const url = `${process.env.REACT_APP_API_URL}/api/financeiro/lancamentos/export/csv/`;
         window.open(url, '_blank');
     };
 
     return (
         <Container maxWidth="xl">
+            {/* ... todo o seu código JSX permanece o mesmo ... */}
             <Typography variant="h4" sx={{ mb: 4 }}>Controle Financeiro</Typography>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                <Tabs value={abaAtual} onChange={handleTabChange}>
-                    <Tab label="Lançamentos" />
-                    <Tab label="Categorias" />
-                    <Tab label="Centros de Custo" />
-                </Tabs>
+                <Tabs value={abaAtual} onChange={handleTabChange}><Tab label="Lançamentos" /><Tab label="Categorias" /><Tab label="Centros de Custo" /></Tabs>
             </Box>
-            
             {abaAtual === 0 && (
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Lançamentos Financeiros</Typography>
                         <Box>
                             <Button variant="contained" onClick={() => handleAbrirDialogLancamento()} sx={{ mr: 2 }}>Novo Lançamento</Button>
-                            {/* ++ AQUI ESTÁ O NOVO BOTÃO DE EXPORTAÇÃO ++ */}
                             <Button variant="outlined" onClick={handleExportCSV}>Exportar CSV</Button>
                         </Box>
                     </Box>
@@ -135,8 +119,6 @@ function FinanceiroPage() {
                     </Table></TableContainer>
                 </Paper>
             )}
-
-            {/* O restante do seu JSX para as outras abas e diálogos permanece o mesmo */}
             {abaAtual === 1 && ( /* ...código JSX sem alteração... */
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -171,7 +153,7 @@ function FinanceiroPage() {
                     </Table></TableContainer>
                 </Paper>
             )}
-             <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
+            <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
                 <DialogTitle>{modoEdicaoLancamento ? 'Editar Lançamento' : 'Novo Lançamento'}</DialogTitle>
                 <DialogContent>
                     <TextField name="descricao" label="Descrição" value={lancamentoForm.descricao} fullWidth margin="dense" required onChange={handleInputChangeLancamento} />

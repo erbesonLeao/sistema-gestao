@@ -1,8 +1,7 @@
-# backend/financeiro/urls.py - VERSÃO ATUALIZADA COM ROTA DE EXPORTAÇÃO
+# backend/financeiro/urls.py - VERSÃO CORRIGIDA
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-# Importamos nossa nova view de exportação
 from .views import (
     CategoriaFinanceiraViewSet, CentroDeCustoViewSet, 
     LancamentoFinanceiroViewSet, ExportLancamentosCSVView
@@ -14,14 +13,14 @@ router.register(r'centros-de-custo', CentroDeCustoViewSet)
 router.register(r'lancamentos', LancamentoFinanceiroViewSet)
 
 urlpatterns = [
-    # Rotas padrão da API para CRUD (Criar, Ler, Atualizar, Apagar)
-    path('', include(router.urls)),
-
-    # AQUI ESTÁ A NOSSA NOVA ROTA DE EXPORTAÇÃO
-    # A URL completa será /api/financeiro/export/csv/
+    # AQUI ESTÁ A MUDANÇA: Colocamos nossa URL customizada de forma mais específica
+    # A URL completa agora será /api/financeiro/lancamentos/export/csv/
     path(
-        'export/csv/', 
+        'lancamentos/export/csv/', 
         ExportLancamentosCSVView.as_view(), 
         name='export-lancamentos-csv'
     ),
+
+    # As rotas padrão do router vêm depois
+    path('', include(router.urls)),
 ]
