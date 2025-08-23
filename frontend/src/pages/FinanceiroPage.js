@@ -1,4 +1,4 @@
-// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM CORREÇÃO DE VALOR
+// frontend/src/pages/FinanceiroPage.js - VERSÃO FINAL COM BOTÃO DE EXPORTAR
 
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
@@ -10,8 +10,10 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 
+// A URL base da API já está no nosso `api.js`, não precisamos dela aqui.
+
 function FinanceiroPage() {
-    // ... todo o seu código de state permanece o mesmo ...
+    // ... todos os seus 'useState' permanecem os mesmos ...
     const [abaAtual, setAbaAtual] = useState(0);
     const [categorias, setCategorias] = useState([]);
     const [carregandoCategorias, setCarregandoCategorias] = useState(true);
@@ -35,30 +37,19 @@ function FinanceiroPage() {
     });
     const [idLancamentoEdit, setIdLancamentoEdit] = useState(null);
 
+    // ... todas as suas funções handle... e buscar... permanecem as mesmas ...
     const handleTabChange = (event, newValue) => { setAbaAtual(newValue); };
     const buscarCategorias = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoCategorias(true);
-        try {
-            const resposta = await api.get('/api/categorias/');
-            setCategorias(resposta.data);
-        } catch (erro) { console.error("Erro ao buscar categorias:", erro); }
-        finally { setCarregandoCategorias(false); }
+        try { const resposta = await api.get('/api/categorias/'); setCategorias(resposta.data); } catch (erro) { console.error("Erro ao buscar categorias:", erro); } finally { setCarregandoCategorias(false); }
     }, []);
     const buscarCentrosDeCusto = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoCentros(true);
-        try {
-            const resposta = await api.get('/api/centros-de-custo/');
-            setCentrosDeCusto(resposta.data);
-        } catch (erro) { console.error("Erro ao buscar centros de custo:", erro); }
-        finally { setCarregandoCentros(false); }
+        try { const resposta = await api.get('/api/centros-de-custo/'); setCentrosDeCusto(resposta.data); } catch (erro) { console.error("Erro ao buscar centros de custo:", erro); } finally { setCarregandoCentros(false); }
     }, []);
     const buscarLancamentos = useCallback(async () => { /* ...código sem alteração... */ 
         setCarregandoLancamentos(true);
-        try {
-            const resposta = await api.get('/api/lancamentos/');
-            setLancamentos(resposta.data);
-        } catch (erro) { console.error("Erro ao buscar lançamentos:", erro); }
-        finally { setCarregandoLancamentos(false); }
+        try { const resposta = await api.get('/api/lancamentos/'); setLancamentos(resposta.data); } catch (erro) { console.error("Erro ao buscar lançamentos:", erro); } finally { setCarregandoLancamentos(false); }
     }, []);
     useEffect(() => { /* ...código sem alteração... */ 
         if (abaAtual === 0) { buscarLancamentos(); }
@@ -66,126 +57,51 @@ function FinanceiroPage() {
         if (abaAtual === 2) { buscarCentrosDeCusto(); }
     }, [abaAtual, buscarLancamentos, buscarCategorias, buscarCentrosDeCusto]);
     const handleAbrirDialogCategoria = (categoria = null) => { /* ...código sem alteração... */ 
-        if (categoria) {
-            setModoEdicaoCategoria(true);
-            setIdCategoriaEdit(categoria.id);
-            setCategoriaForm({ nome: categoria.nome, descricao: categoria.descricao, tipo: categoria.tipo });
-        } else {
-            setModoEdicaoCategoria(false);
-            setCategoriaForm({ nome: '', descricao: '', tipo: 'Despesa' });
-        }
+        if (categoria) { setModoEdicaoCategoria(true); setIdCategoriaEdit(categoria.id); setCategoriaForm({ nome: categoria.nome, descricao: categoria.descricao, tipo: categoria.tipo }); } else { setModoEdicaoCategoria(false); setCategoriaForm({ nome: '', descricao: '', tipo: 'Despesa' }); }
         setDialogCategoriaAberto(true);
     };
     const handleFecharDialogCategoria = () => setDialogCategoriaAberto(false);
     const handleInputChangeCategoria = (e) => setCategoriaForm(prevState => ({ ...prevState, [e.target.name]: e.target.value }));
     const handleSalvarCategoria = async () => { /* ...código sem alteração... */ 
-        try {
-            if (modoEdicaoCategoria) {
-                await api.put(`/api/categorias/${idCategoriaEdit}/`, categoriaForm);
-            } else {
-                await api.post('/api/categorias/', categoriaForm);
-            }
-            handleFecharDialogCategoria();
-            buscarCategorias();
-        } catch (erro) {
-            console.error("Erro ao salvar categoria:", erro.response?.data || erro);
-            alert("Erro ao salvar categoria.");
-        }
+        try { if (modoEdicaoCategoria) { await api.put(`/api/categorias/${idCategoriaEdit}/`, categoriaForm); } else { await api.post('/api/categorias/', categoriaForm); } handleFecharDialogCategoria(); buscarCategorias(); } catch (erro) { console.error("Erro ao salvar categoria:", erro.response?.data || erro); alert("Erro ao salvar categoria."); }
     };
     const handleAbrirDialogCentro = (centro = null) => { /* ...código sem alteração... */ 
-        if (centro) {
-            setModoEdicaoCentro(true);
-            setIdCentroEdit(centro.id);
-            setCentroForm({ nome: centro.nome, descricao: centro.descricao });
-        } else {
-            setModoEdicaoCentro(false);
-            setCentroForm({ nome: '', descricao: '' });
-        }
+        if (centro) { setModoEdicaoCentro(true); setIdCentroEdit(centro.id); setCentroForm({ nome: centro.nome, descricao: centro.descricao }); } else { setModoEdicaoCentro(false); setCentroForm({ nome: '', descricao: '' }); }
         setDialogCentroAberto(true);
     };
     const handleFecharDialogCentro = () => setDialogCentroAberto(false);
     const handleInputChangeCentro = (e) => setCentroForm(prevState => ({ ...prevState, [e.target.name]: e.target.value }));
     const handleSalvarCentro = async () => { /* ...código sem alteração... */ 
-        try {
-            if (modoEdicaoCentro) {
-                await api.put(`/api/centros-de-custo/${idCentroEdit}/`, centroForm);
-            } else {
-                await api.post('/api/centros-de-custo/', centroForm);
-            }
-            handleFecharDialogCentro();
-            buscarCentrosDeCusto();
-        } catch (erro) {
-            console.error("Erro ao salvar centro de custo:", erro.response?.data || erro);
-            alert("Erro ao salvar centro de custo.");
-        }
+        try { if (modoEdicaoCentro) { await api.put(`/api/centros-de-custo/${idCentroEdit}/`, centroForm); } else { await api.post('/api/centros-de-custo/', centroForm); } handleFecharDialogCentro(); buscarCentrosDeCusto(); } catch (erro) { console.error("Erro ao salvar centro de custo:", erro.response?.data || erro); alert("Erro ao salvar centro de custo."); }
     };
     const handleAbrirDialogLancamento = async (lancamento = null) => { /* ...código sem alteração... */ 
         await Promise.all([buscarCategorias(), buscarCentrosDeCusto()]);
-        if (lancamento) {
-            setModoEdicaoLancamento(true);
-            setIdLancamentoEdit(lancamento.id);
-            setLancamentoForm({
-                descricao: lancamento.descricao, valor: lancamento.valor, tipo: lancamento.tipo,
-                status_pagamento: lancamento.status_pagamento, data_lancamento: lancamento.data_lancamento,
-                data_competencia: lancamento.data_competencia, categoria: lancamento.categoria || '',
-                centro_de_custo: lancamento.centro_de_custo || ''
-            });
-        } else {
-            setModoEdicaoLancamento(false);
-            setLancamentoForm({
-                descricao: '', valor: '', tipo: 'Despesa', status_pagamento: 'Pendente',
-                data_lancamento: new Date().toISOString().split('T')[0],
-                data_competencia: new Date().toISOString().split('T')[0],
-                categoria: '', centro_de_custo: ''
-            });
-        }
+        if (lancamento) { setModoEdicaoLancamento(true); setIdLancamentoEdit(lancamento.id); setLancamentoForm({ descricao: lancamento.descricao, valor: lancamento.valor, tipo: lancamento.tipo, status_pagamento: lancamento.status_pagamento, data_lancamento: lancamento.data_lancamento, data_competencia: lancamento.data_competencia, categoria: lancamento.categoria || '', centro_de_custo: lancamento.centro_de_custo || '' }); } else { setModoEdicaoLancamento(false); setLancamentoForm({ descricao: '', valor: '', tipo: 'Despesa', status_pagamento: 'Pendente', data_lancamento: new Date().toISOString().split('T')[0], data_competencia: new Date().toISOString().split('T')[0], categoria: '', centro_de_custo: '' }); }
         setDialogLancamentoAberto(true);
     };
     const handleFecharDialogLancamento = () => setDialogLancamentoAberto(false);
     const handleInputChangeLancamento = (e) => setLancamentoForm(prevState => ({ ...prevState, [e.target.name]: e.target.value }));
-    
-    // ##################################################################
-    // ## AQUI ESTÁ A ÚNICA MUDANÇA ##
-    // ##################################################################
-    const handleSalvarLancamento = async () => {
-        try {
-            // 1. Pega o valor do formulário como uma string
-            let valorFormatado = String(lancamentoForm.valor);
-            
-            // 2. Remove os pontos de milhar (ex: "20.000" -> "20000")
-            valorFormatado = valorFormatado.replace(/\./g, '');
-            
-            // 3. Troca a vírgula decimal por um ponto decimal (ex: "20000,50" -> "20000.50")
-            valorFormatado = valorFormatado.replace(',', '.');
-            
-            // 4. Cria o payload com o valor limpo e convertido para número
-            const payload = { 
-                ...lancamentoForm,
-                valor: parseFloat(valorFormatado) // Converte a string limpa para um número
-            };
-
-            // Remove chaves estrangeiras se estiverem vazias, para não dar erro no Django
-            if (!payload.categoria) delete payload.categoria;
-            if (!payload.centro_de_custo) delete payload.centro_de_custo;
-
-            if (modoEdicaoLancamento) {
-                await api.put(`/api/lancamentos/${idLancamentoEdit}/`, payload);
-            } else {
-                await api.post('/api/lancamentos/', payload);
-            }
-            handleFecharDialogLancamento();
-            buscarLancamentos();
-        } catch (erro) {
-            console.error("Erro ao salvar lançamento:", erro.response?.data || erro);
-            // Podemos até melhorar a mensagem de erro no futuro
-            alert("Erro ao salvar lançamento. Verifique se todos os campos obrigatórios estão preenchidos corretamente.");
-        }
+    const handleSalvarLancamento = async () => { /* ...código sem alteração... */ 
+        try { let valorFormatado = String(lancamentoForm.valor); valorFormatado = valorFormatado.replace(/\./g, ''); valorFormatado = valorFormatado.replace(',', '.'); const payload = { ...lancamentoForm, valor: parseFloat(valorFormatado) }; if (!payload.categoria) delete payload.categoria; if (!payload.centro_de_custo) delete payload.centro_de_custo; if (modoEdicaoLancamento) { await api.put(`/api/lancamentos/${idLancamentoEdit}/`, payload); } else { await api.post('/api/lancamentos/', payload); } handleFecharDialogLancamento(); buscarLancamentos(); } catch (erro) { console.error("Erro ao salvar lançamento:", erro.response?.data || erro); alert("Erro ao salvar lançamento. Verifique se todos os campos obrigatórios estão preenchidos corretamente."); }
     };
-    
-    // O JSX para renderização permanece o mesmo
+
+    // ++ AQUI ESTÁ A NOVA FUNÇÃO PARA EXPORTAR ++
+    const handleExportCSV = () => {
+        // Por enquanto, não estamos usando os filtros de data, mas a lógica pode ser adicionada aqui
+        // const { dataInicio, dataFim } = seusEstadosDeFiltro; 
+        // let url = `${process.env.REACT_APP_API_URL}/api/financeiro/export/csv/`;
+        // if (dataInicio && dataFim) {
+        //     url += `?data_inicio=${dataInicio}&data_fim=${dataFim}`;
+        // }
+        
+        const url = `${process.env.REACT_APP_API_URL}/api/financeiro/export/csv/`;
+
+        // Abrir a URL em uma nova aba fará com que o navegador inicie o download
+        window.open(url, '_blank');
+    };
+
     return (
         <Container maxWidth="xl">
-            {/* ... todo o seu código JSX permanece o mesmo ... */}
             <Typography variant="h4" sx={{ mb: 4 }}>Controle Financeiro</Typography>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                 <Tabs value={abaAtual} onChange={handleTabChange}>
@@ -199,7 +115,11 @@ function FinanceiroPage() {
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Lançamentos Financeiros</Typography>
-                        <Button variant="contained" onClick={() => handleAbrirDialogLancamento()}>Novo Lançamento</Button>
+                        <Box>
+                            <Button variant="contained" onClick={() => handleAbrirDialogLancamento()} sx={{ mr: 2 }}>Novo Lançamento</Button>
+                            {/* ++ AQUI ESTÁ O NOVO BOTÃO DE EXPORTAÇÃO ++ */}
+                            <Button variant="outlined" onClick={handleExportCSV}>Exportar CSV</Button>
+                        </Box>
                     </Box>
                     <TableContainer><Table size="small"><TableHead><TableRow><TableCell>Descrição</TableCell><TableCell>Valor</TableCell><TableCell>Tipo</TableCell><TableCell>Categoria</TableCell><TableCell>Centro de Custo</TableCell><TableCell>Data Lanç.</TableCell><TableCell>Status</TableCell><TableCell>Ações</TableCell></TableRow></TableHead>
                         <TableBody>
@@ -216,7 +136,8 @@ function FinanceiroPage() {
                 </Paper>
             )}
 
-            {abaAtual === 1 && (
+            {/* O restante do seu JSX para as outras abas e diálogos permanece o mesmo */}
+            {abaAtual === 1 && ( /* ...código JSX sem alteração... */
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Gerir Categorias</Typography>
@@ -233,8 +154,7 @@ function FinanceiroPage() {
                     </Table></TableContainer>
                 </Paper>
             )}
-
-            {abaAtual === 2 && (
+            {abaAtual === 2 && ( /* ...código JSX sem alteração... */
                 <Paper elevation={3} sx={{ p: 2 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h6">Gerir Centros de Custo</Typography>
@@ -251,8 +171,7 @@ function FinanceiroPage() {
                     </Table></TableContainer>
                 </Paper>
             )}
-
-            <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
+             <Dialog open={dialogLancamentoAberto} onClose={handleFecharDialogLancamento} fullWidth maxWidth="sm">
                 <DialogTitle>{modoEdicaoLancamento ? 'Editar Lançamento' : 'Novo Lançamento'}</DialogTitle>
                 <DialogContent>
                     <TextField name="descricao" label="Descrição" value={lancamentoForm.descricao} fullWidth margin="dense" required onChange={handleInputChangeLancamento} />
