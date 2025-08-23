@@ -1,9 +1,13 @@
-# backend/financeiro/views.py - VERSÃO ATUALIZADA COM EXPORTAÇÃO CSV
+# backend/financeiro/views.py - VERSÃO DE DEBUG PARA CAPTURAR ERROS
 
 import csv
+import traceback # Importamos a biblioteca de traceback
+from io import StringIO # Usaremos para criar o CSV em memória
 from django.http import HttpResponse
 from rest_framework import viewsets
-from rest_framework.views import APIView # Importamos a APIView base
+from rest_framework.views import APIView
+from rest_framework.response import Response # Importamos a Response do DRF
+from rest_framework import status # Importamos os status HTTP
 from rest_framework.permissions import IsAuthenticated
 from .models import CategoriaFinanceira, CentroDeCusto, LancamentoFinanceiro
 from .serializers import CategoriaFinanceiraSerializer, CentroDeCustoSerializer, LancamentoFinanceiroSerializer
@@ -27,50 +31,55 @@ class LancamentoFinanceiroViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(criado_por=self.request.user)
 
-# --- AQUI ESTÁ A NOSSA NOVA VIEW DE EXPORTAÇÃO ---
+# --- NOVA VERSÃO DA VIEW DE EXPORTAÇÃO COM CAPTURA DE ERRO ---
 class ExportLancamentosCSVView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        # 1. Prepara a resposta HTTP para ser um arquivo CSV
-        response = HttpResponse(content_type='text/csv')
-        # Define o nome do arquivo que será baixado
-        response['Content-Disposition'] = 'attachment; filename="relatorio_financeiro.csv"'
+        try:
+            # Tenta executar a lógica de exportação
+            data_inicio_str = request.query_params.get('data_inicio', None)
+            data_fim_str = request.query_params.get('data_fim', None)
 
-        # 2. Cria o "escritor" de CSV
-        writer = csv.writer(response)
-        # Escreve a linha do cabeçalho
-        writer.writerow([
-            'ID', 'Descricao', 'Valor', 'Tipo', 'Status', 
-            'Data Lancamento', 'Data Competencia', 'Categoria', 'Centro de Custo'
-        ])
+            lancamentos = LancamentoFinanceiro.objects.select_related(
+                'categoria', 'centro_de_custo'
+            ).filter(criado_por=request.user).order_by('data_lancamento')
 
-        # 3. Pega os filtros de data da URL (reaproveitando nossa lógica do dashboard)
-        data_inicio_str = request.query_params.get('data_inicio', None)
-        data_fim_str = request.query_params.get('data_fim', None)
-
-        lancamentos = LancamentoFinanceiro.objects.select_related(
-            'categoria', 'centro_de_custo'
-        ).all().order_by('data_lancamento')
-
-        if data_inicio_str and data_fim_str:
-            lancamentos = lancamentos.filter(
-                data_lancamento__range=[data_inicio_str, data_fim_str]
-            )
-
-        # 4. Escreve cada lançamento como uma linha no arquivo CSV
-        for lancamento in lancamentos:
+            if data_inicio_str and data_fim_str:
+                lancamentos = lancamentos.filter(
+                    data_lancamento__range=[data_inicio_str, data_fim_str]
+                )
+            
+            # Usamos StringIO para criar o CSV em memória
+            buffer = StringIO()
+            buffer.write(u'\ufeff') # BOM para compatibilidade com Excel
+            writer = csv.writer(buffer)
+            
             writer.writerow([
-                lancamento.id,
-                lancamento.descricao,
-                lancamento.valor,
-                lancamento.tipo,
-                lancamento.status_pagamento,
-                lancamento.data_lancamento,
-                lancamento.data_competencia,
-                lancamento.categoria.nome if lancamento.categoria else '',
-                lancamento.centro_de_custo.nome if lancamento.centro_de_custo else '',
+                'ID', 'Descricao', 'Valor', 'Tipo', 'Status', 
+                'Data Lancamento', 'Data Competencia', 'Categoria', 'Centro de Custo'
             ])
-        
-        # 5. Retorna a resposta (o arquivo pronto para download)
-        return response
+
+            for lancamento in lancamentos:
+                categoria_nome = getattr(lancamento.categoria, 'nome', '')
+                centro_custo_nome = getattr(lancamento.centro_de_custo, 'nome', '')
+                writer.writerow([
+                    lancamento.id, lancamento.descricao, lancamento.valor,
+                    lancamento.tipo, lancamento.status_pagamento, lancamento.data_lancamento,
+                    lancamento.data_competencia, categoria_nome, centro_custo_nome,
+                ])
+
+            # Prepara a resposta HTTP com o arquivo
+            response = HttpResponse(buffer.getvalue(), content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment; filename="relatorio_financeiro.csv"'
+            return response
+
+        except Exception as e:
+            # SE UM ERRO ACONTECER, CAPTURA O TRACEBACK COMPLETO
+            error_traceback = traceback.format_exc()
+            print(error_traceback) # Imprime o erro no log da Render também
+            # E ENVIA O ERRO DETALHADO COMO RESPOSTA
+            return Response(
+                {"error": str(e), "traceback": error_traceback},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
