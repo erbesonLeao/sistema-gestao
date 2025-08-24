@@ -1,3 +1,5 @@
+# backend/maquinario/serializers.py - VERSÃO CORRETA
+
 from rest_framework import serializers
 from .models import Maquinario
 
