@@ -2,10 +2,10 @@
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MaquinarioViewSet # <-- Mude o nome da ViewSet aqui
+from .views import MaquinarioViewSet 
 
 router = DefaultRouter()
-router.register(r'', MaquinarioViewSet, basename='maquinario') # <-- E aqui
+router.register(r'', MaquinarioViewSet, basename='maquinario')
 
 urlpatterns = [
     path('', include(router.urls)),
