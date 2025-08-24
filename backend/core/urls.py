@@ -17,7 +17,7 @@ urlpatterns = [
 
     # Rotas de cada App, agora listadas individualmente para máxima clareza
     path('api/core/', include('core.urls')),
-    path('api/usuarios/', include('usuarios.urls')),
+   #path('api/usuarios/', include('usuarios.urls')),   para evitar conflito com auth user model 
     path('api/funcionarios/', include('funcionarios.urls')),
     path('api/maquinario/', include('maquinario.urls')),
     path('api/estoque/', include('estoque.urls')),

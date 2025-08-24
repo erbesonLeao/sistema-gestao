@@ -1,43 +1,52 @@
-# backend/dashboard/views.py - VERSÃO FINAL COM CORREÇÃO DE IMPORT CIRCULAR
+# backend/dashboard/views.py - VERSÃO ATUALIZADA COM FILTROS DE DATA
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+#from funcionarios.models import Funcionario para evita conflito
+from maquinario.models import Maquinario
+from estoque.models import Produto
+from financeiro.models import LancamentoFinanceiro
 from django.db.models import Sum, Count
-from datetime import date
-from .serializers import DashboardSerializer
+from datetime import date, timedelta
 
 class DashboardSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        # AQUI ESTÁ A CORREÇÃO: Movemos as importações dos modelos para DENTRO do método
-        # Isso quebra o ciclo de importação, pois elas só são carregadas quando a função é chamada.
-        from funcionarios.models import Funcionario
-        from maquinario.models import Maquinario
-        from estoque.models import Produto
-        from financeiro.models import LancamentoFinanceiro
-
-        # A partir daqui, todo o resto do código permanece o mesmo.
+        # --- 1. LÓGICA PARA CAPTURAR OS FILTROS DE DATA DA URL ---
+        # Pegamos os parâmetros da URL, ex: ?data_inicio=2025-08-01&data_fim=2025-08-23
         data_inicio_str = request.query_params.get('data_inicio', None)
         data_fim_str = request.query_params.get('data_fim', None)
 
+        # --- 2. PREPARAMOS A BASE DA CONSULTA FINANCEIRA ---
+        # Começamos com todos os lançamentos
         base_lancamentos_query = LancamentoFinanceiro.objects.all()
+
+        # Se as datas foram fornecidas, aplicamos o filtro de período
         if data_inicio_str and data_fim_str:
+            # O filtro 'range' busca tudo que está ENTRE as duas datas
             base_lancamentos_query = base_lancamentos_query.filter(
                 data_lancamento__range=[data_inicio_str, data_fim_str]
             )
 
-        summary_cards_data = {
-            'total_funcionarios_ativos': Funcionario.objects.filter(status='Ativo').count(),
-            'total_maquinas': Maquinario.objects.count(),
-            'total_produtos_estoque': Produto.objects.count(),
-            'saldo_financeiro': (base_lancamentos_query.filter(tipo='Receita', status_pagamento='Pago').aggregate(total=Sum('valor'))['total'] or 0) - \
-                                (base_lancamentos_query.filter(tipo='Despesa', status_pagamento='Pago').aggregate(total=Sum('valor'))['total'] or 0)
-        }
-        funcionarios_chart_data = Funcionario.objects.values('status').annotate(total=Count('status')).order_by('status')
-        despesas_chart_data = base_lancamentos_query.filter(tipo='Despesa').values('categoria__nome').annotate(total=Sum('valor')).order_by('-total')[:5]
+        # --- 3. CÁLCULOS ATUALIZADOS USANDO A CONSULTA FILTRADA ---
+        # Os cálculos financeiros agora partem da nossa consulta base (que pode ou não estar filtrada)
+        receitas = base_lancamentos_query.filter(tipo='Receita', status_pagamento='Pago').aggregate(total=Sum('valor'))['total'] or 0
+        despesas = base_lancamentos_query.filter(tipo='Despesa', status_pagamento='Pago').aggregate(total=Sum('valor'))['total'] or 0
+        saldo = receitas - despesas
 
+        # O gráfico de despesas também usará a consulta filtrada
+        despesas_por_categoria = base_lancamentos_query.filter(tipo='Despesa').values('categoria__nome').annotate(total=Sum('valor')).order_by('-total')[:5]
+
+
+        # --- CÁLCULOS NÃO SENSÍVEIS À DATA (permanecem como estavam) ---
+        total_funcionarios_ativos = Funcionario.objects.filter(status='Ativo').count()
+        total_maquinas = Maquinario.objects.count()
+        total_produtos_estoque = Produto.objects.count()
+        funcionarios_por_status = Funcionario.objects.values('status').annotate(total=Count('status')).order_by('status')
+
+        # --- MURAL DE AVISOS (também não é afetado pelo filtro de data) ---
         mural_de_avisos = []
         hoje = date.today()
         aniversariantes_mes = Funcionario.objects.filter(data_nascimento__month=hoje.month)
@@ -51,13 +60,17 @@ class DashboardSummaryView(APIView):
         mural_de_avisos.append("📅 Reunião geral da equipa na próxima sexta-feira às 10h.")
         mural_de_avisos.append("🍕 Pizza de confraternização no final do mês!")
 
+
         data = {
-            'summary_cards': summary_cards_data,
-            'funcionarios_chart': list(funcionarios_chart_data),
-            'despesas_chart': list(despesas_chart_data),
+            'summary_cards': {
+                'total_funcionarios_ativos': total_funcionarios_ativos,
+                'total_maquinas': total_maquinas,
+                'total_produtos_estoque': total_produtos_estoque,
+                'saldo_financeiro': saldo,
+            },
+            'funcionarios_chart': list(funcionarios_por_status),
+            'despesas_chart': list(despesas_por_categoria),
             'mural_de_avisos': mural_de_avisos,
         }
 
-        serializer = DashboardSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data)
+        return Response(data)
