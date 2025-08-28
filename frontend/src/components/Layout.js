@@ -1,4 +1,4 @@
-// frontend/src/components/Layout.js - VERSÃO FINAL COM UI DE NOTIFICAÇÕES
+// frontend/src/components/Layout.js - VERSÃO COM A CORREÇÃO DE SINTAXE
 
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
@@ -11,14 +11,12 @@ import {
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-// ...outros imports de ícones...
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
-
 
 const drawerWidth = 240;
 
@@ -53,7 +51,10 @@ function Layout() {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>Gerenciador da Empresa</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Tooltip title={darkMode ? "Modo Claro" : "Modo Escuro"}>
-              <IconButton onClick={toggleDarkMode} color="inherit"><mrow darkMode ? <Brightness7Icon /> : <Brightness4Icon />}</IconButton>
+              {/* AQUI ESTÁ A LINHA CORRIGIDA */}
+              <IconButton onClick={toggleDarkMode} color="inherit">
+                {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+              </IconButton>
             </Tooltip>
             <Tooltip title="Notificações">
               <IconButton color="inherit" onClick={handleNotificationMenu}>
